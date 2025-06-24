@@ -1,0 +1,26 @@
+{
+  "welcome": "Akwaaba ba UFAD Africa",
+  "description": "Hwɛ w’abɔdwesɛ so, ma w’agyapadeɛ nyɛ kama",
+  "setup": "Siesie W’abɔdwesɛ",
+  "explore": "Nhwehwɛ Nsɛm Foforɔ",
+  "select_language": "Paw Kasa",
+  "add_transaction": "Ka Transakshɛn",
+  "view_stock": "Hwɛ Adeɛ a ɛwɔ hɔ",
+  "add_supplier": "Ka Supplier/Customer",
+  "recent_transactions": "Transakshɛn a ɛyɛ foforɔ",
+
+  "apply_loan": "Pɛ Loan",
+  "available_loans": "Loan a ɛwɔ hɔ",
+
+  "upload_momo": "Toa so MoMo Transakshɛn",
+  "start_now": "Firi Seisei Ara",
+
+  "loan_reminder": "Ka bɔ",
+  "stock_low": "Adea no asa",
+    "credit_score": "Sika som bo",
+      "notifications": "Nsɛmma",
+  "loan_message": "Wo Ecobank ka no bɛyɛ daako",
+  "stock_message": "Nkyɛdeɛ 5 pɛ na ɛka wɔ Tomatoes ho",
+  "score_message": "Wo ka ho din asesa kɔɔ Gold mu"
+  
+}

@@ -1,0 +1,24 @@
+{
+  "welcome": "Barka da zuwa UFAD Africa",
+  "description": "Bibi kasuwancinka, kara darajar bashi naka",
+  "setup": "Fara Kasuwanci",
+  "explore": "Duba Fasali",
+  "select_language": "Zaɓi Harshe",
+  "add_transaction": "Ƙara Ma'amala",
+  "view_stock": "Duba Kaya",
+  "add_supplier": "Ƙara Mai Kaya/Abokin Ciniki",
+  "recent_transactions": "Ma'amaloli na Kwanan nan",
+ 
+  "apply_loan": "Nemi Bashi",
+  "available_loans": "Bashi da ake da shi",
+
+  "upload_momo": "Loda Ma'amalolin MoMo",
+  "start_now": "Fara Yanzu",
+  "notifications": "Faɗakarwa",
+  "loan_reminder": "Tuna bashi",
+  "stock_low": "Kayayyaki sun ragu",
+  "credit_score": "Matsayin bashi",
+  "loan_message": "Rancen Ecobank ɗinka zai ƙare cikin kwanaki biyu",
+  "stock_message": "Tomatoes ɗinku ya rage da guda 5 kawai",
+  "score_message": "An haɓaka ƙimar lamunin ku zuwa Gold Tier"
+}

@@ -1,0 +1,24 @@
+{
+  "welcome": "Welcome to UFAD Africa",
+  "description": "Track your business, boost your credit score",
+  "setup": "Set Up Your Business",
+  "explore": "Explore Features",
+  "select_language": "Select Language",
+  "add_transaction": "Add Transaction",
+  "view_stock": "View Stock",
+  "add_supplier": "Add Supplier/Customer",
+  "recent_transactions": "Recent Transactions",
+  "loan_reminder": "Loan Due Reminder",
+  "apply_loan": "Apply for Loan",
+  "available_loans": "Available Loans",
+
+  "upload_momo": "Upload MoMo Transactions",
+  "start_now": "Start Now",
+  "notifications": "Notifications",
+ 
+  "stock_low": "Stock Low Alert",
+  "credit_score": "Credit Score",
+  "loan_message": "Your Ecobank loan is due in 2 days",
+  "stock_message": "Only 5 units of Tomatoes left in inventory",
+    "score_message": "Your score improved to Gold Tier"
+  }

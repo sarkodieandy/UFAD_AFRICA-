@@ -1,0 +1,43 @@
+name: ufad
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  fl_chart: ^1.0.0
+  image_picker: ^1.1.2
+  file_picker: ^10.1.9
+  intl: 0.20.2
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.3
+  easy_localization: ^3.0.3
+  provider: ^6.1.5
+  flutter_animate: ^4.5.2
+  flutter_launcher_icons: ^0.14.3
+  csv: ^6.0.0
+  pdf: ^3.11.3
+  http: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/lang/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
