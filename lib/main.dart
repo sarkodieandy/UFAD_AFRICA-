@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ufad/app_route.dart'; // Your route map
+import 'package:ufad/app_route.dart';
 import 'package:ufad/providers/language_provider.dart';
-import 'package:ufad/setup_business/provider/registration_provider.dart'; // <-- Add this
+import 'package:ufad/setup_business/provider/product_provider.dart';
+import 'package:ufad/setup_business/provider/registration_provider.dart';
+import 'package:ufad/providers/api_provider.dart';
+
+// You may also want providers for the new screens if you want state management for them.
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,9 +16,10 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<LanguageProvider>.value(value: langProvider),
-        ChangeNotifierProvider(
-          create: (_) => RegistrationProvider(),
-        ), // <-- Add this!
+        ChangeNotifierProvider(create: (_) => RegistrationProvider()),
+        ChangeNotifierProvider(create: (_) => ApiProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        // Add other providers for the new screens as needed
       ],
       child: const UFADAfricaApp(),
     ),
@@ -43,16 +48,19 @@ class UFADAfricaApp extends StatelessWidget {
             title: 'UFAD Africa',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
-              primaryColor: const Color(0xFF007BFF),
-              scaffoldBackgroundColor: const Color(0xFFF9F9F9),
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xFF50C878),
+                surface: Colors.white,
+              ),
+              scaffoldBackgroundColor: Colors.white,
               fontFamily: 'Arial',
               appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF007BFF),
+                backgroundColor: Color(0xFF50C878),
                 foregroundColor: Colors.white,
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF007BFF),
+                  backgroundColor: const Color(0xFF50C878),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -62,8 +70,8 @@ class UFADAfricaApp extends StatelessWidget {
               ),
               outlinedButtonTheme: OutlinedButtonThemeData(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF007BFF),
-                  side: const BorderSide(color: Color(0xFF007BFF)),
+                  foregroundColor: const Color(0xFF50C878),
+                  side: const BorderSide(color: Color(0xFF50C878)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

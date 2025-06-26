@@ -29,10 +29,10 @@ class BusinessRegistrationSuccessScreen extends StatelessWidget {
                 onPressed:
                     () => Navigator.pushNamedAndRemoveUntil(
                       context,
-                      '/',
+                      '/dashboard', // <--- NAVIGATE TO DASHBOARD HERE
                       (_) => false,
                     ),
-                child: const Text("Return to Home"),
+                child: const Text("Go to Dashboard"),
               ),
             ],
           ),
