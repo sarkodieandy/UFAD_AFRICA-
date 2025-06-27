@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:ufad/providers/language_provider.dart';
 
 class StartupScreen extends StatelessWidget {
   const StartupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const brandGreen = Color(0xFF1BAEA6);
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -19,7 +18,7 @@ class StartupScreen extends StatelessWidget {
                 height: 200,
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF007BFF),
+                  color: brandGreen, // 🔴 Use brand color!
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(15),
                     bottomRight: Radius.circular(15),
@@ -55,15 +54,6 @@ class StartupScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Positioned(
-                top: 50,
-                right: 20,
-                child: const Icon(
-                  Icons.notifications_none,
-                  color: Colors.white,
-                  size: 28,
-                ).animate().fadeIn(delay: 300.ms),
-              ),
             ],
           ),
           Expanded(
@@ -98,14 +88,14 @@ class StartupScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: brandGreen, // 🔴 Use brand color!
                     ),
                   ).animate().fadeIn(delay: 400.ms),
                   const SizedBox(height: 8),
                   const Text(
                     'Manage your business digitally with ease',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: brandGreen), // 🔴 Use brand color!
                   ).animate().fadeIn(delay: 500.ms),
                   const SizedBox(height: 30),
                   SizedBox(
@@ -118,7 +108,7 @@ class StartupScreen extends StatelessWidget {
                         ).then((_) => HapticFeedback.lightImpact());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF007BFF),
+                        backgroundColor: brandGreen, // 🔴 Use brand color!
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -142,14 +132,14 @@ class StartupScreen extends StatelessWidget {
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: Color(0xFF007BFF)),
+                        side: const BorderSide(color: brandGreen), // 🔴
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: const Text(
                         'Explore Features',
-                        style: TextStyle(color: Color(0xFF007BFF)),
+                        style: TextStyle(color: brandGreen), // 🔴
                       ),
                     ).animate().fadeIn(delay: 700.ms),
                   ),
@@ -167,31 +157,7 @@ class StartupScreen extends StatelessWidget {
                     ),
                   ).animate().fadeIn(delay: 750.ms),
                   const SizedBox(height: 20),
-                  Consumer<LanguageProvider>(
-                    builder: (context, langProvider, child) {
-                      return DropdownButtonFormField<String>(
-                        value: langProvider.locale.languageCode,
-                        decoration: const InputDecoration(
-                          labelText: 'Select Language',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'en', child: Text('English')),
-                          DropdownMenuItem(value: 'twi', child: Text('Twi')),
-                          DropdownMenuItem(value: 'ha', child: Text('Hausa')),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            langProvider.loadLanguage(value);
-                          }
-                        },
-                      );
-                    },
-                  ).animate().fadeIn(delay: 800.ms),
+
                   const SizedBox(height: 30),
                 ],
               ),

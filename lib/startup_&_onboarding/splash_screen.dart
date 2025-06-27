@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:ufad/providers/language_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashAnimationConfig {
+  static const brandGreen = Color(0xFF1BAEA6);
 }
 
 class _SplashScreenState extends State<SplashScreen>
@@ -52,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushReplacementNamed(context, '/startup');
       }
     });
   }
@@ -66,7 +68,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final tr = Provider.of<LanguageProvider>(context).tr;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -74,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 🟦 Logo
+            // Logo
             ScaleTransition(
               scale: _scaleAnimation,
               child: Image.asset(
@@ -85,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             const SizedBox(height: 24),
 
-            // 🔷 Title
+            // Title
             SlideTransition(
               position: _textSlideAnimation,
               child: FadeTransition(
@@ -95,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF007BFF),
+                    color: _SplashAnimationConfig.brandGreen,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -103,28 +104,30 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             const SizedBox(height: 10),
 
-            // 🌍 Subtitle
+            // Subtitle
             SlideTransition(
               position: _textSlideAnimation,
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: Text(
-                  tr('digitize'),
-                  style: const TextStyle(
+                child: const Text(
+                  'Digitize Your Business',
+                  style: TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF007BFF),
+                    color: _SplashAnimationConfig.brandGreen,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 40),
 
-            // 🔄 Loader
+            // Loader with pulse
             FadeTransition(
               opacity: _fadeAnimation,
               child: const PulseAnimation(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007BFF)),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _SplashAnimationConfig.brandGreen,
+                  ),
                   strokeWidth: 2,
                 ),
               ),
@@ -136,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// 💫 Pulse effect
+// Pulse effect for loader
 class PulseAnimation extends StatefulWidget {
   final Widget child;
   const PulseAnimation({super.key, required this.child});

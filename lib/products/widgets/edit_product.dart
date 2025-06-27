@@ -117,8 +117,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       ),
                       keyboardType: TextInputType.number,
                       validator: (val) {
-                        if (val == null || val.trim().isEmpty)
+                        if (val == null || val.trim().isEmpty) {
                           return 'Enter price';
+                        }
                         final d = double.tryParse(val);
                         if (d == null || d < 0) return 'Enter valid price';
                         return null;
@@ -153,8 +154,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               backgroundColor: const Color(0xFF21C087),
                             ),
                             onPressed: () {
-                              if (_formKey.currentState?.validate() != true)
+                              if (_formKey.currentState?.validate() != true) {
                                 return;
+                              }
 
                               // call updateProduct not editProduct!
                               Provider.of<ProductProvider>(

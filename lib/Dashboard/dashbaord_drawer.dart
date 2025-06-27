@@ -39,31 +39,31 @@ class DashboardDrawer extends StatelessWidget {
           _DrawerItem(
             icon: Icons.warehouse_outlined,
             label: 'Stock',
-            route: '/stock-management', // Updated
+            route: '/stock-management',
             selected: currentRoute == '/stock-management',
           ),
           _DrawerItem(
             icon: Icons.people,
             label: 'Customers',
-            route: '/customer-management', // Updated
+            route: '/customer-management',
             selected: currentRoute == '/customer-management',
           ),
           _DrawerItem(
             icon: Icons.local_shipping,
             label: 'Suppliers',
-            route: '/suppliers',
-            selected: currentRoute == '/suppliers',
+            route: '/supplier-management', // <-- FIXED HERE
+            selected: currentRoute == '/supplier-management', // <-- FIXED HERE
           ),
           _DrawerItem(
             icon: Icons.point_of_sale,
             label: 'POS',
-            route: '/point-of-sale', // Updated
+            route: '/point-of-sale',
             selected: currentRoute == '/point-of-sale',
           ),
           _DrawerItem(
             icon: Icons.payment,
             label: 'Payment',
-            route: '/payment-management', // Updated
+            route: '/payment-management',
             selected: currentRoute == '/payment-management',
           ),
           ExpansionTile(
@@ -160,6 +160,7 @@ class _DrawerItem extends StatelessWidget {
       dense: dense,
       onTap: () {
         Navigator.pop(context);
+        // Only navigate if not already on this route
         if (ModalRoute.of(context)?.settings.name != route) {
           Navigator.pushReplacementNamed(context, route);
         }

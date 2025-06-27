@@ -35,7 +35,7 @@ class POSSalesTable extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: DataTable(
           columnSpacing: 28,
-          headingRowColor: MaterialStateProperty.all(const Color(0xFFF3F6F9)),
+          headingRowColor: WidgetStateProperty.all(const Color(0xFFF3F6F9)),
           columns: const [
             DataColumn(
               label: Text(
