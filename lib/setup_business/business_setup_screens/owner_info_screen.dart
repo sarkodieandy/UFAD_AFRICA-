@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ufad/setup_business/provider/registration_provider.dart';
-import 'package:ufad/setup_business/models/business_registration_model.dart';
 
 final List<Map<String, dynamic>> regions = [
   {'id': 1, 'name': 'Greater Accra'},
@@ -34,15 +33,17 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   String _gender = 'male';
   String _ageGroup = '25_34';
   String _selectedIdType = 'ghana_card';
   File? _idImage;
-
-  int? _regionId = 1;
-  int? _districtId = 1;
-  int? _townId = 1;
+  int _regionId = 1;
+  int _districtId = 1;
+  int _townId = 1;
+  bool _isLoading = false;
 
   final List<String> _ageGroups = [
     'under_25',
@@ -66,47 +67,58 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
   void dispose() {
     _nameController.dispose();
     _mobileController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  void _onNext() {
+  Future<void> _onNext() async {
     if (!_formKey.currentState!.validate()) return;
+    // NOTE: ID image is only stored locally for possible future use, not sent to backend
+    if (_selectedIdType != 'none' && _idImage == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please upload ID image')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
     final provider = Provider.of<RegistrationProvider>(context, listen: false);
 
-    provider.setRegistration(
-      BusinessRegistration(
-        staffId: 1,
-        fullName: _nameController.text,
-        mobileNumber: _mobileController.text,
+    try {
+      final fullName = _nameController.text.trim().split(' ');
+      final firstName = fullName.isNotEmpty ? fullName.first : '';
+      final lastName = fullName.length > 1 ? fullName.sublist(1).join(' ') : '';
+
+      await provider.registerUserAndCustomer(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        firstName: firstName,
+        lastName: lastName,
+        userType: 'customer',
+        mobileNumber: _mobileController.text.trim(),
         gender: _gender,
         ageGroup: _ageGroup,
         nationalIdType: _selectedIdType,
-        nationalIdImage: _idImage?.path,
-        regionId: _regionId ?? 1,
-        districtId: _districtId ?? 1,
-        townId: _townId ?? 1,
-        businessName: '',
-        businessType: '',
-        businessRegistered: '',
-        registrationDocument: null,
-        businessSector: '',
-        mainProductService: '',
-        businessStartYear: DateTime.now().year,
-        businessLocation: '',
-        gpsAddress: '',
-        businessPhone: '',
-        estimatedWeeklySales: '',
-        numberOfWorkers: '',
-        recordKeepingMethod: '',
-        mobileMoneyNumber: null,
-        hasInsurance: '',
-        pensionScheme: '',
-        bankLoan: '',
-        termsAgreed: '',
-        receiveUpdates: '',
-      ),
-    );
-    Navigator.pushNamed(context, '/business-info');
+        // Image is not sent to backend, just saved in model for potential local use
+        nationalIdImage: null,
+        regionId: _regionId,
+        districtId: _districtId,
+        townId: _townId,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.pushNamed(context, '/business-info');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to proceed: $e')));
+      }
+    }
   }
 
   @override
@@ -114,7 +126,7 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Business Owner Info'),
-        backgroundColor: const Color(0xFF007BFF),
+        backgroundColor: const Color(0xFF1BAEA6),
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
@@ -128,15 +140,41 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Full Name'),
                 validator:
-                    (val) => val == null || val.isEmpty ? 'Required' : null,
+                    (val) =>
+                        val == null || val.trim().isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator:
+                    (val) =>
+                        val == null ||
+                                !RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                ).hasMatch(val)
+                            ? 'Enter valid email'
+                            : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator:
+                    (val) =>
+                        val == null || val.length < 6
+                            ? 'Password must be at least 6 characters'
+                            : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _mobileController,
-                keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Mobile Number (+233...)',
                 ),
+                keyboardType: TextInputType.phone,
                 validator:
                     (val) => val == null || val.isEmpty ? 'Required' : null,
               ),
@@ -145,7 +183,7 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
                 children:
                     ['male', 'female'].map((g) {
                       return Expanded(
-                        child: RadioListTile(
+                        child: RadioListTile<String>(
                           title: Text(g[0].toUpperCase() + g.substring(1)),
                           value: g,
                           groupValue: _gender,
@@ -205,19 +243,26 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
                             ? const Center(
                               child: Text('Tap to upload ID picture'),
                             )
-                            : Image.file(_idImage!, fit: BoxFit.cover),
+                            : ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                _idImage!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                              ),
+                            ),
                   ),
                 ),
               ],
               const SizedBox(height: 16),
-              // Region Dropdown
               DropdownButtonFormField<int>(
                 value: _regionId,
                 items:
                     regions
                         .map(
                           (region) => DropdownMenuItem<int>(
-                            value: region['id'] as int,
+                            value: region['id'],
                             child: Text(region['name']),
                           ),
                         )
@@ -226,14 +271,13 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
                 decoration: const InputDecoration(labelText: 'Region'),
               ),
               const SizedBox(height: 16),
-              // District Dropdown
               DropdownButtonFormField<int>(
                 value: _districtId,
                 items:
                     districts
                         .map(
                           (district) => DropdownMenuItem<int>(
-                            value: district['id'] as int,
+                            value: district['id'],
                             child: Text(district['name']),
                           ),
                         )
@@ -242,14 +286,13 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
                 decoration: const InputDecoration(labelText: 'District'),
               ),
               const SizedBox(height: 16),
-              // Town Dropdown
               DropdownButtonFormField<int>(
                 value: _townId,
                 items:
                     towns
                         .map(
                           (town) => DropdownMenuItem<int>(
-                            value: town['id'] as int,
+                            value: town['id'],
                             child: Text(town['name']),
                           ),
                         )
@@ -260,19 +303,13 @@ class _OwnerInfoScreenState extends State<OwnerInfoScreen> {
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
+                height: 48,
                 child: ElevatedButton(
-                  onPressed: _onNext,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007BFF),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Next',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                  onPressed: _isLoading ? null : _onNext,
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Next'),
                 ),
               ),
             ],

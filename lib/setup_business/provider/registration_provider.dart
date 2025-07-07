@@ -1,97 +1,164 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:ufad/setup_business/models/business_registration.dart';
+import 'package:ufad/setup_business/services/register_api.dart';
 
-import '../models/business_registration_model.dart';
-
-class RegistrationProvider extends ChangeNotifier {
+class RegistrationProvider with ChangeNotifier {
   BusinessRegistration? _registration;
-  int? _registrationId;
+  int? _userId;
+  String? _token;
 
   BusinessRegistration? get registration => _registration;
-  int? get registrationId => _registrationId;
+  int? get userId => _userId;
+  String? get token => _token;
 
-  void setRegistration(BusinessRegistration reg) {
-    _registration = reg;
+  final ApiService _apiService = ApiService();
+
+  /// Update registration data for any step.
+  void setRegistration(BusinessRegistration registration) {
+    _registration = registration;
     notifyListeners();
   }
 
-  void setRegistrationId(int id) {
-    _registrationId = id;
+  /// Step 1: Owner info (from OwnerInfoScreen)
+  Future<void> registerUserAndCustomer({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String userType,
+    required String mobileNumber,
+    required String gender,
+    required String ageGroup,
+    required String nationalIdType,
+    required int regionId,
+    required int districtId,
+    required int townId, required nationalIdImage,
+    // National ID image is not required for JSON API version, remove from args
+  }) async {
+    // Create or update the registration draft.
+    _registration = BusinessRegistration(
+      staffId: 0,
+      fullName: '$firstName $lastName',
+      mobileNumber: mobileNumber,
+      gender: gender,
+      ageGroup: ageGroup,
+      nationalIdType: nationalIdType,
+      nationalIdImage: null, // Not uploaded (only local use)
+      regionId: regionId,
+      districtId: districtId,
+      townId: townId,
+      businessName: '',
+      businessType: '',
+      businessRegistered: '',
+      registrationDocument: null,
+      businessSector: '',
+      mainProductService: '',
+      businessStartYear: DateTime.now().year,
+      businessLocation: '',
+      gpsAddress: null,
+      businessPhone: '',
+      estimatedWeeklySales: '',
+      numberOfWorkers: '',
+      recordKeepingMethod: '',
+      mobileMoneyNumber: null,
+      hasInsurance: '',
+      pensionScheme: '',
+      bankLoan: '',
+      termsAgreed: '',
+      receiveUpdates: '',
+      supportNeeds: [],
+      email: email,
+      password: password,
+      firstName: firstName,
+      lastName: lastName,
+      userType: userType,
+    );
     notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
-  // POST to API and update regId
+  /// Step 2+: Business info and additional data can be updated with setRegistration()
+
+  /// Final submission to API
   Future<void> submitRegistration() async {
-    if (_registration == null) throw Exception("Registration is null");
+    final r = _registration;
+    if (r == null) throw Exception('Registration data not set.');
 
-    final Map<String, dynamic> regMap = _registration!.toJson();
+    // Construct username fallback logic
+    final String username =
+        (r.username != null && r.username!.isNotEmpty)
+            ? r.username!
+            : ((r.email != null && r.email!.contains('@'))
+                ? r.email!.split('@')[0]
+                : ((r.firstName ?? 'user') + (r.lastName ?? '')));
 
-    // Debugging: Print the full registration data to check types
-    print('---- REGISTRATION DEBUG START ----');
-    regMap.forEach((k, v) {
-      print('$k (${v.runtimeType}): $v');
-    });
-    print('---- REGISTRATION DEBUG END ----');
+    // Debug: print the outgoing data
+    debugPrint('ConsentScreen: About to submit registration data:');
+    debugPrint(r.toJson().toString());
 
-    // Additional: Check for any number fields that are still String (should be int)
-    final numberFields = [
-      'staff_id',
-      'region_id',
-      'district_id',
-      'town_id',
-      'business_start_year',
-    ];
-    for (final field in numberFields) {
-      if (regMap[field] != null && regMap[field] is String) {
-        throw Exception(
-          'Field "$field" should be int but is String: "${regMap[field]}"',
-        );
-      }
-    }
-
-    final url = Uri.parse(
-      "http://api.terlomarket.com/api/index.php/business_registrations",
-    );
-    final headers = {"Content-Type": "application/json"};
-    final body = jsonEncode(regMap);
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    print("API RESPONSE CODE: ${response.statusCode}");
-    print("API RESPONSE BODY: ${response.body}");
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-
-      // --- THE FIX: always parse to int ---
-      final regIdRaw = data["data"]["registration_id"];
-      _registrationId = int.tryParse(regIdRaw.toString());
-      print(
-        'Parsed registration_id: $_registrationId (${_registrationId.runtimeType})',
+    try {
+      final result = await _apiService.registerUser(
+        username: username,
+        email: r.email ?? '',
+        password: r.password ?? '',
+        firstName: r.firstName ?? '',
+        lastName: r.lastName ?? '',
+        userType: r.userType ?? '',
+        mobileNumber: r.mobileNumber,
+        gender: r.gender,
+        ageGroup: r.ageGroup,
+        nationalIdType: r.nationalIdType,
+        regionId: r.regionId,
+        districtId: r.districtId,
+        townId: r.townId,
+        businessName: r.businessName,
+        businessType: r.businessType,
+        businessRegistered: r.businessRegistered,
+        businessSector: r.businessSector,
+        mainProductService: r.mainProductService,
+        businessStartYear: r.businessStartYear,
+        businessLocation: r.businessLocation,
+        businessPhone: r.businessPhone,
+        estimatedWeeklySales: r.estimatedWeeklySales,
+        numberOfWorkers: r.numberOfWorkers,
+        recordKeepingMethod: r.recordKeepingMethod,
+        hasInsurance: r.hasInsurance,
+        pensionScheme: r.pensionScheme,
+        bankLoan: r.bankLoan,
+        termsAgreed: r.termsAgreed,
+        receiveUpdates: r.receiveUpdates,
+        supportNeeds: r.supportNeeds, // List<int>
       );
-
+      // Handle returned data
+      final userIdVal = result['user_id'];
+      _userId =
+          userIdVal is int
+              ? userIdVal
+              : int.tryParse(userIdVal?.toString() ?? '');
+      _token = result['token']?.toString();
       notifyListeners();
-    } else {
-      throw Exception("Failed to register business: ${response.body}");
+    } catch (e, st) {
+      debugPrint('ConsentScreen: Registration failed!');
+      debugPrint('ConsentScreen: Exception: $e');
+      debugPrint('ConsentScreen: Stack trace: $st');
+      throw Exception('Registration failed: $e');
     }
   }
 
-  // GET from API by ID
-  Future<void> fetchRegistration(int id) async {
-    final url = Uri.parse(
-      "http://api.terlomarket.com/api/index.php/business_registrations/$id",
-    );
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['data'] != null && data['data'].isNotEmpty) {
-        _registration = BusinessRegistration.fromJson(data['data'][0]);
-        notifyListeners();
-      }
-    } else {
-      throw Exception("Failed to fetch registration: ${response.body}");
+  /// Login method for completeness
+  Future<void> login(String loginValue, String password) async {
+    try {
+      final data = await _apiService.login(loginValue, password);
+      final userMap = data['user'];
+      final userIdVal = userMap['user_id'];
+      _userId =
+          userIdVal is int
+              ? userIdVal
+              : int.tryParse(userIdVal?.toString() ?? '');
+      _token = userMap['token']?.toString();
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Login failed: $e');
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import 'package:ufad/setup_business/provider/registration_provider.dart';
 import 'package:flutter/gestures.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,8 +15,56 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscureText = true;
   final _formKey = GlobalKey<FormState>();
+  final _loginController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   static const brandGreen = Color(0xFF1BAEA6);
+
+  @override
+  void dispose() {
+    _loginController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final provider = Provider.of<RegistrationProvider>(
+        context,
+        listen: false,
+      );
+      await provider.login(
+        _loginController.text.trim(),
+        _passwordController.text,
+      );
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Login failed: ${e is Exception ? (e.toString().replaceFirst('Exception: ', '')) : e}',
+          ),
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Utility: allow login by email or phone
+  String? _validateLoginField(String? val) {
+    if (val == null || val.isEmpty) return 'Required';
+    final emailReg = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final phoneReg = RegExp(r'^\+?\d{9,15}$'); // supports international format
+    if (!emailReg.hasMatch(val) && !phoneReg.hasMatch(val)) {
+      return 'Enter valid email or phone number';
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Header with brand color
           Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 80, bottom: 20),
@@ -66,9 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
               .animate()
               .fadeIn(duration: 500.ms)
               .slideY(begin: -0.5, curve: Curves.easeOut),
-
           const SizedBox(height: 30),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -78,16 +125,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _loginController,
                       decoration: InputDecoration(
-                        hintText: 'Phone or Email',
+                        hintText: 'Email or Mobile Number',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: [
+                        AutofillHints.email,
+                        AutofillHints.telephoneNumber,
+                      ],
+                      validator: _validateLoginField,
                     ).animate(delay: 300.ms).fadeIn().slideX(begin: -0.2),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _passwordController,
                       obscureText: _obscureText,
+                      keyboardType: TextInputType.visiblePassword,
+                      autofillHints: [AutofillHints.password],
                       decoration: InputDecoration(
                         hintText: 'Password',
                         border: OutlineInputBorder(
@@ -106,12 +163,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                       ),
+                      validator:
+                          (val) =>
+                              val == null || val.isEmpty ? 'Required' : null,
                     ).animate(delay: 400.ms).fadeIn().slideX(begin: 0.2),
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => HapticFeedback.lightImpact(),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.pushNamed(context, '/forgot-password');
+                        },
                         child: const Text(
                           'Forgot Password?',
                           style: TextStyle(color: brandGreen, fontSize: 13),
@@ -122,15 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            HapticFeedback.lightImpact();
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/dashboard',
-                            );
-                          }
-                        },
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandGreen,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -138,10 +193,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
+                        child:
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                                : const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
                       ).animate(delay: 600.ms).fadeIn().slideY(begin: 0.5),
                     ),
                     const SizedBox(height: 20),
@@ -159,11 +222,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         .fadeIn()
                         .scaleXY(begin: 0.8, end: 1),
                     const SizedBox(height: 16),
-
-                    // You can add more widgets here (e.g. social login, language, etc)
-                    const SizedBox(height: 20),
-
-                    // Terms and Conditions (clickable)
                     RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(

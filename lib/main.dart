@@ -5,20 +5,29 @@ import 'package:ufad/setup_business/provider/product_provider.dart';
 import 'package:ufad/setup_business/provider/registration_provider.dart';
 import 'package:ufad/providers/api_provider.dart';
 
-void main() async {
+void main() {
+  // Only use async if you have actual async setup to do.
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(
-    MultiProvider(
+  runApp(const AppBootstrap());
+}
+
+class AppBootstrap extends StatelessWidget {
+  const AppBootstrap({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => RegistrationProvider()),
         ChangeNotifierProvider(create: (_) => ApiProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
-        // Add other providers for the new screens as needed
+        // Add other providers here, but prefer to keep to essentials!
       ],
       child: const UFADAfricaApp(),
-    ),
-  );
+    );
+  }
+  
 }
 
 class UFADAfricaApp extends StatelessWidget {
@@ -31,7 +40,7 @@ class UFADAfricaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: const ColorScheme.light(
-          primary: Color(0xFF1BAEA6), // Brand green
+          primary: Color(0xFF1BAEA6),
           surface: Colors.white,
         ),
         scaffoldBackgroundColor: Colors.white,
@@ -62,7 +71,7 @@ class UFADAfricaApp extends StatelessWidget {
         ),
       ),
       routes: appRoutes,
-      initialRoute: '/', // Start with splash
+      initialRoute: '/', // Splash screen
     );
   }
 }

@@ -14,12 +14,11 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
   String? estimatedWeeklySales;
   String? numberOfWorkers;
   String? recordKeepingMethod;
-  String? mobileMoneyNumber;
-  String? hasInsurance = 'no';
-  String? pensionScheme = 'no';
-  String? bankLoan = 'no';
+  String? mobileMoneyNumber = '';
+  String hasInsurance = 'no';
+  String pensionScheme = 'no';
+  String bankLoan = 'no';
 
-  // Map: API value => Friendly label
   final salesOptions = {
     'less_500': 'Less than 500',
     '500_1000': '500 - 1,000',
@@ -41,12 +40,9 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
   };
 
   void _onNext() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!_formKey.currentState!.validate()) return;
 
-    final regProvider = Provider.of<RegistrationProvider>(
-      context,
-      listen: false,
-    );
+    final regProvider = Provider.of<RegistrationProvider>(context, listen: false);
     final registration = regProvider.registration;
     if (registration == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,10 +56,10 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
         estimatedWeeklySales: estimatedWeeklySales!,
         numberOfWorkers: numberOfWorkers!,
         recordKeepingMethod: recordKeepingMethod!,
-        mobileMoneyNumber: mobileMoneyNumber,
-        hasInsurance: hasInsurance!,
-        pensionScheme: pensionScheme!,
-        bankLoan: bankLoan!,
+        mobileMoneyNumber: (mobileMoneyNumber == null || mobileMoneyNumber!.isEmpty) ? null : mobileMoneyNumber,
+        hasInsurance: hasInsurance,
+        pensionScheme: pensionScheme,
+        bankLoan: bankLoan,
       ),
     );
     Navigator.pushNamed(context, '/support-needs');
@@ -74,121 +70,113 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Business Activity & Finance'),
-        backgroundColor: const Color(0xFF4361EE),
+        backgroundColor: const Color(0xFF1BAEA6),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text("Estimated Weekly Sales"),
+            const Text('Estimated Weekly Sales'),
             DropdownButtonFormField<String>(
               value: estimatedWeeklySales,
-              decoration: const InputDecoration(hintText: "Select sales"),
-              items:
-                  salesOptions.entries
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      )
-                      .toList(),
+              decoration: const InputDecoration(hintText: 'Select sales'),
+              items: salesOptions.entries
+                  .map((e) => DropdownMenuItem(
+                        value: e.key,
+                        child: Text(e.value),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => estimatedWeeklySales = v),
               validator: (val) => val == null ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            const Text("Number of Workers"),
+            const Text('Number of Workers'),
             DropdownButtonFormField<String>(
               value: numberOfWorkers,
-              decoration: const InputDecoration(hintText: "Select"),
-              items:
-                  workerOptions.entries
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      )
-                      .toList(),
+              decoration: const InputDecoration(hintText: 'Select'),
+              items: workerOptions.entries
+                  .map((e) => DropdownMenuItem(
+                        value: e.key,
+                        child: Text(e.value),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => numberOfWorkers = v),
               validator: (val) => val == null ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            const Text("Record Keeping Method"),
+            const Text('Record Keeping Method'),
             DropdownButtonFormField<String>(
               value: recordKeepingMethod,
-              decoration: const InputDecoration(hintText: "Select"),
-              items:
-                  recordOptions.entries
-                      .map(
-                        (e) => DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value),
-                        ),
-                      )
-                      .toList(),
+              decoration: const InputDecoration(hintText: 'Select'),
+              items: recordOptions.entries
+                  .map((e) => DropdownMenuItem(
+                        value: e.key,
+                        child: Text(e.value),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => recordKeepingMethod = v),
               validator: (val) => val == null ? 'Required' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(
-                labelText: "Mobile Money Number (Optional)",
+                labelText: 'Mobile Money Number (Optional)',
               ),
               keyboardType: TextInputType.phone,
-              onChanged: (v) => mobileMoneyNumber = v,
+              initialValue: mobileMoneyNumber,
+              onChanged: (v) => setState(() => mobileMoneyNumber = v),
             ),
             const SizedBox(height: 16),
-            const Text("Has Insurance?"),
+            const Text('Has Insurance?'),
             Row(
               children: [
                 Radio<String>(
                   value: 'yes',
                   groupValue: hasInsurance,
-                  onChanged: (val) => setState(() => hasInsurance = val),
+                  onChanged: (val) => setState(() => hasInsurance = val!),
                 ),
                 const Text('Yes'),
                 Radio<String>(
                   value: 'no',
                   groupValue: hasInsurance,
-                  onChanged: (val) => setState(() => hasInsurance = val),
+                  onChanged: (val) => setState(() => hasInsurance = val!),
                 ),
                 const Text('No'),
               ],
             ),
             const SizedBox(height: 16),
-            const Text("Pension Scheme?"),
+            const Text('Pension Scheme?'),
             Row(
               children: [
                 Radio<String>(
                   value: 'yes',
                   groupValue: pensionScheme,
-                  onChanged: (val) => setState(() => pensionScheme = val),
+                  onChanged: (val) => setState(() => pensionScheme = val!),
                 ),
                 const Text('Yes'),
                 Radio<String>(
                   value: 'no',
                   groupValue: pensionScheme,
-                  onChanged: (val) => setState(() => pensionScheme = val),
+                  onChanged: (val) => setState(() => pensionScheme = val!),
                 ),
                 const Text('No'),
               ],
             ),
             const SizedBox(height: 16),
-            const Text("Has Bank Loan?"),
+            const Text('Has Bank Loan?'),
             Row(
               children: [
                 Radio<String>(
                   value: 'yes',
                   groupValue: bankLoan,
-                  onChanged: (val) => setState(() => bankLoan = val),
+                  onChanged: (val) => setState(() => bankLoan = val!),
                 ),
                 const Text('Yes'),
                 Radio<String>(
                   value: 'no',
                   groupValue: bankLoan,
-                  onChanged: (val) => setState(() => bankLoan = val),
+                  onChanged: (val) => setState(() => bankLoan = val!),
                 ),
                 const Text('No'),
               ],
@@ -196,13 +184,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _onNext,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4361EE),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('Next', style: TextStyle(color: Colors.white)),
+              child: const Text('Next'),
             ),
           ],
         ),
