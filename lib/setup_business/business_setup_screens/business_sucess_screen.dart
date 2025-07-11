@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class BusinessRegistrationSuccessScreen extends StatelessWidget {
   const BusinessRegistrationSuccessScreen({super.key});
@@ -14,7 +15,11 @@ class BusinessRegistrationSuccessScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 100),
+              // Animated check icon
+              const Icon(Icons.check_circle, color: Colors.green, size: 100)
+                  .animate()
+                  .scaleXY(begin: 0.5, end: 1, duration: 600.ms)
+                  .fadeIn(duration: 600.ms),
               const SizedBox(height: 24),
               Text(
                 'Registration Complete!',
@@ -42,11 +47,20 @@ class BusinessRegistrationSuccessScreen extends StatelessWidget {
                   ),
                   onPressed: () => Navigator.pushNamedAndRemoveUntil(
                     context,
-                    '/login',
+                    '/login', // If you want to go to dashboard, change to '/dashboard'
                     (_) => false,
                   ),
-                  icon: const Icon(Icons.dashboard),
-                  label: const Text('Go to Dashboard'),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Go to Login'),
+                ),
+              ),
+              // Optional: Add a "Back" or "Close" link
+              const SizedBox(height: 18),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "Back",
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
             ],

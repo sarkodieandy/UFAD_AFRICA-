@@ -23,6 +23,10 @@ dependencies:
   csv: ^6.0.0
   pdf: ^3.11.3
   http: ^1.4.0
+  animate_do: ^4.2.0
+  font_awesome_flutter: ^10.8.0
+  flutter_staggered_animations: ^1.1.1
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

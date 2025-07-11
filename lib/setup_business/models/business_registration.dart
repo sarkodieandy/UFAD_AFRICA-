@@ -1,5 +1,4 @@
 class BusinessRegistration {
-  final int? registrationId;
   final int staffId;
   final String fullName;
   final String mobileNumber;
@@ -35,10 +34,10 @@ class BusinessRegistration {
   final String? firstName;
   final String? lastName;
   final String? userType;
+  final String? profileImageBase64;
   final String? username;
 
   BusinessRegistration({
-    this.registrationId,
     required this.staffId,
     required this.fullName,
     required this.mobileNumber,
@@ -68,82 +67,17 @@ class BusinessRegistration {
     required this.bankLoan,
     required this.termsAgreed,
     required this.receiveUpdates,
-    this.supportNeeds = const [],
+    required this.supportNeeds,
     this.email,
     this.password,
     this.firstName,
     this.lastName,
     this.userType,
+    this.profileImageBase64,
     this.username,
   });
 
-  factory BusinessRegistration.fromJson(Map<String, dynamic> json) {
-    int parseInt(dynamic val) {
-      if (val is int) return val;
-      if (val is String) return int.tryParse(val) ?? 0;
-      return 0;
-    }
-
-    List<int> parseSupportNeeds(dynamic val) {
-      if (val == null) return [];
-      if (val is List) {
-        // Handles both [1, 2, 3] and ["1", "2", "3"]
-        return val.map((e) {
-          if (e is int) return e;
-          if (e is String) return int.tryParse(e) ?? 0;
-          return 0;
-        }).toList();
-      }
-      if (val is String && val.isNotEmpty) {
-        // Handles "1,2,3"
-        return val.split(',').map((e) => int.tryParse(e) ?? 0).toList();
-      }
-      return [];
-    }
-
-    return BusinessRegistration(
-      registrationId: parseInt(json['registration_id']),
-      staffId: parseInt(json['staff_id']),
-      fullName: json['full_name'] ?? '',
-      mobileNumber: json['mobile_number'] ?? '',
-      gender: json['gender'] ?? '',
-      ageGroup: json['age_group'] ?? '',
-      nationalIdType: json['national_id_type'] ?? '',
-      nationalIdImage: json['national_id_image'],
-      regionId: parseInt(json['region_id']),
-      districtId: parseInt(json['district_id']),
-      townId: parseInt(json['town_id']),
-      businessName: json['business_name'] ?? '',
-      businessType: json['business_type'] ?? '',
-      businessRegistered: json['business_registered'] ?? '',
-      registrationDocument: json['registration_document'],
-      businessSector: json['business_sector'] ?? '',
-      mainProductService: json['main_product_service'] ?? '',
-      businessStartYear: parseInt(json['business_start_year']),
-      businessLocation: json['business_location'] ?? '',
-      gpsAddress: json['gps_address'],
-      businessPhone: json['business_phone'] ?? '',
-      estimatedWeeklySales: json['estimated_weekly_sales']?.toString() ?? '',
-      numberOfWorkers: json['number_of_workers']?.toString() ?? '',
-      recordKeepingMethod: json['record_keeping_method'] ?? '',
-      mobileMoneyNumber: json['mobile_money_number'],
-      hasInsurance: json['has_insurance'] ?? '',
-      pensionScheme: json['pension_scheme'] ?? '',
-      bankLoan: json['bank_loan'] ?? '',
-      termsAgreed: json['terms_agreed'] ?? '',
-      receiveUpdates: json['receive_updates'] ?? '',
-      supportNeeds: parseSupportNeeds(json['support_needs']),
-      email: json['email'],
-      password: json['password'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
-      userType: json['user_type'],
-      username: json['username'],
-    );
-  }
-
   BusinessRegistration copyWith({
-    int? registrationId,
     int? staffId,
     String? fullName,
     String? mobileNumber,
@@ -179,10 +113,10 @@ class BusinessRegistration {
     String? firstName,
     String? lastName,
     String? userType,
+    String? profileImageBase64,
     String? username,
   }) {
     return BusinessRegistration(
-      registrationId: registrationId ?? this.registrationId,
       staffId: staffId ?? this.staffId,
       fullName: fullName ?? this.fullName,
       mobileNumber: mobileNumber ?? this.mobileNumber,
@@ -218,47 +152,50 @@ class BusinessRegistration {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       userType: userType ?? this.userType,
+      profileImageBase64: profileImageBase64 ?? this.profileImageBase64,
       username: username ?? this.username,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'registration_id': registrationId,
-        'staff_id': staffId,
-        'full_name': fullName,
-        'mobile_number': mobileNumber,
-        'gender': gender,
-        'age_group': ageGroup,
-        'national_id_type': nationalIdType,
-        'national_id_image': nationalIdImage,
-        'region_id': regionId,
-        'district_id': districtId,
-        'town_id': townId,
-        'business_name': businessName,
-        'business_type': businessType,
-        'business_registered': businessRegistered,
-        'registration_document': registrationDocument,
-        'business_sector': businessSector,
-        'main_product_service': mainProductService,
-        'business_start_year': businessStartYear,
-        'business_location': businessLocation,
-        'gps_address': gpsAddress,
-        'business_phone': businessPhone,
-        'estimated_weekly_sales': estimatedWeeklySales,
-        'number_of_workers': numberOfWorkers,
-        'record_keeping_method': recordKeepingMethod,
-        'mobile_money_number': mobileMoneyNumber,
-        'has_insurance': hasInsurance,
-        'pension_scheme': pensionScheme,
-        'bank_loan': bankLoan,
-        'terms_agreed': termsAgreed,
-        'receive_updates': receiveUpdates,
-        'support_needs': supportNeeds,
-        'email': email,
-        'password': password,
-        'first_name': firstName,
-        'last_name': lastName,
-        'user_type': userType,
-        'username': username,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'staff_id': staffId,
+      'full_name': fullName,
+      'mobile_number': mobileNumber,
+      'gender': gender,
+      'age_group': ageGroup,
+      'national_id_type': nationalIdType,
+      'national_id_image': nationalIdImage,
+      'region_id': regionId,
+      'district_id': districtId,
+      'town_id': townId,
+      'business_name': businessName,
+      'business_type': businessType,
+      'business_registered': businessRegistered,
+      'registration_document': registrationDocument,
+      'business_sector': businessSector,
+      'main_product_service': mainProductService,
+      'business_start_year': businessStartYear,
+      'business_location': businessLocation,
+      'gps_address': gpsAddress,
+      'business_phone': businessPhone,
+      'estimated_weekly_sales': estimatedWeeklySales,
+      'number_of_workers': numberOfWorkers,
+      'record_keeping_method': recordKeepingMethod,
+      'mobile_money_number': mobileMoneyNumber,
+      'has_insurance': hasInsurance,
+      'pension_scheme': pensionScheme,
+      'bank_loan': bankLoan,
+      'terms_agreed': termsAgreed,
+      'receive_updates': receiveUpdates,
+      'support_needs': supportNeeds,
+      'email': email,
+      'password': password,
+      'first_name': firstName,
+      'last_name': lastName,
+      'user_type': userType,
+      'profile_image': profileImageBase64,
+      'username': username,
+    };
+  }
 }

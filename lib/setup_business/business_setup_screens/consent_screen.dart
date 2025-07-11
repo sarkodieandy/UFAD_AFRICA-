@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:ufad/setup_business/provider/registration_provider.dart';
+import 'package:ufad/provider/registration_provider.dart';
 
 class ConsentScreen extends StatefulWidget {
   const ConsentScreen({super.key});
@@ -35,7 +35,6 @@ class _ConsentScreenState extends State<ConsentScreen> {
 
     setState(() => _loading = true);
 
-    // -- DEBUG PRINT: Print the registration data sent to the API --
     if (kDebugMode) {
       print('ConsentScreen: About to submit registration data:');
       print(reg.copyWith(
@@ -65,11 +64,17 @@ class _ConsentScreenState extends State<ConsentScreen> {
         );
       }
     } catch (e, stack) {
-      // -- DEBUG PRINT: Print error and stack trace! --
       if (kDebugMode) {
+        print('====================================');
         print('ConsentScreen: Registration failed!');
-        print('ConsentScreen: Exception: $e');
-        print('ConsentScreen: Stack trace:\n$stack');
+        print('Error: $e');
+        print('Stack trace:\n$stack');
+        print('Registration data:');
+        print(reg.copyWith(
+          termsAgreed: 'yes',
+          receiveUpdates: agreeToUpdates ? 'yes' : 'no',
+        ).toJson());
+        print('====================================');
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -117,6 +122,9 @@ class _ConsentScreenState extends State<ConsentScreen> {
             height: 48,
             child: ElevatedButton(
               onPressed: _loading ? null : _submitRegistration,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1BAEA6),
+              ),
               child: _loading
                   ? const SizedBox(
                       width: 26,

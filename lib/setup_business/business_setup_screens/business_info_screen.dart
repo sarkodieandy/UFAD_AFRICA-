@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:ufad/setup_business/provider/registration_provider.dart';
+import 'package:ufad/provider/registration_provider.dart';
 
 class BusinessInfoScreen extends StatefulWidget {
   const BusinessInfoScreen({super.key});
@@ -18,6 +18,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
   final locationController = TextEditingController();
   final gpsController = TextEditingController();
   final phoneController = TextEditingController();
+
   String? businessType;
   String? registrationStatus;
   String? selectedSector;
@@ -33,8 +34,28 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
     'services',
     'other',
   ];
-  // Show most recent years first
   final years = [for (int i = DateTime.now().year; i >= 2000; i--) i];
+
+  @override
+  void initState() {
+    super.initState();
+    // If editing, load existing values from provider
+    final reg = Provider.of<RegistrationProvider>(context, listen: false).registration;
+    if (reg != null) {
+      nameController.text = reg.businessName;
+      productController.text = reg.mainProductService;
+      locationController.text = reg.businessLocation;
+      gpsController.text = reg.gpsAddress ?? '';
+      phoneController.text = reg.businessPhone;
+      businessType = reg.businessType.isNotEmpty ? reg.businessType : null;
+      registrationStatus = reg.businessRegistered.isNotEmpty ? reg.businessRegistered : null;
+      selectedSector = reg.businessSector.isNotEmpty ? reg.businessSector : null;
+      selectedYear = reg.businessStartYear != 0 ? reg.businessStartYear : null;
+      registrationFile = reg.registrationDocument != null && reg.registrationDocument!.isNotEmpty
+          ? File(reg.registrationDocument!)
+          : null;
+    }
+  }
 
   Future<void> _pickRegistrationFile() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -256,6 +277,9 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _onNext,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1BAEA6),
+                  ),
                   child: const Text('Next'),
                 ),
               ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:ufad/setup_business/provider/registration_provider.dart';
+import 'package:ufad/provider/registration_provider.dart';
 import 'package:flutter/gestures.dart';
 
 class LoginScreen extends StatefulWidget {

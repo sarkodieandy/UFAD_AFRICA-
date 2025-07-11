@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ufad/setup_business/provider/registration_provider.dart';
+import 'package:ufad/provider/registration_provider.dart';
 
 class BusinessActivityScreen extends StatefulWidget {
   const BusinessActivityScreen({super.key});
@@ -38,6 +38,22 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
     'phone_app': 'Phone app',
     'excel_computer': 'Excel/computer',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    // If user is editing, prefill with current values
+    final reg = Provider.of<RegistrationProvider>(context, listen: false).registration;
+    if (reg != null) {
+      estimatedWeeklySales = reg.estimatedWeeklySales.isNotEmpty ? reg.estimatedWeeklySales : null;
+      numberOfWorkers = reg.numberOfWorkers.isNotEmpty ? reg.numberOfWorkers : null;
+      recordKeepingMethod = reg.recordKeepingMethod.isNotEmpty ? reg.recordKeepingMethod : null;
+      mobileMoneyNumber = reg.mobileMoneyNumber ?? '';
+      hasInsurance = reg.hasInsurance.isNotEmpty ? reg.hasInsurance : 'no';
+      pensionScheme = reg.pensionScheme.isNotEmpty ? reg.pensionScheme : 'no';
+      bankLoan = reg.bankLoan.isNotEmpty ? reg.bankLoan : 'no';
+    }
+  }
 
   void _onNext() {
     if (!_formKey.currentState!.validate()) return;
@@ -77,7 +93,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text('Estimated Weekly Sales'),
+            const Text('Estimated Weekly Sales *'),
             DropdownButtonFormField<String>(
               value: estimatedWeeklySales,
               decoration: const InputDecoration(hintText: 'Select sales'),
@@ -91,7 +107,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
               validator: (val) => val == null ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            const Text('Number of Workers'),
+            const Text('Number of Workers *'),
             DropdownButtonFormField<String>(
               value: numberOfWorkers,
               decoration: const InputDecoration(hintText: 'Select'),
@@ -105,7 +121,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
               validator: (val) => val == null ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            const Text('Record Keeping Method'),
+            const Text('Record Keeping Method *'),
             DropdownButtonFormField<String>(
               value: recordKeepingMethod,
               decoration: const InputDecoration(hintText: 'Select'),
@@ -128,7 +144,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
               onChanged: (v) => setState(() => mobileMoneyNumber = v),
             ),
             const SizedBox(height: 16),
-            const Text('Has Insurance?'),
+            const Text('Has Insurance? *'),
             Row(
               children: [
                 Radio<String>(
@@ -146,7 +162,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            const Text('Pension Scheme?'),
+            const Text('Pension Scheme? *'),
             Row(
               children: [
                 Radio<String>(
@@ -164,7 +180,7 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            const Text('Has Bank Loan?'),
+            const Text('Has Bank Loan? *'),
             Row(
               children: [
                 Radio<String>(
@@ -184,7 +200,11 @@ class _BusinessActivityScreenState extends State<BusinessActivityScreen> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _onNext,
-              child: const Text('Next'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1BAEA6),
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: const Text('Next', style: TextStyle(fontSize: 16)),
             ),
           ],
         ),

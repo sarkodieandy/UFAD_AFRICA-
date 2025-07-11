@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import 'package:ufad/provider/registration_provider.dart';
+
+// This should match backend IDs for each support item!
+const Map<String, int> supportNeedIds = {
+  "Business registration": 1,
+  "Loans / Funding": 2,
+  "Record keeping": 3,
+  "Market access": 4,
+  "Training & coaching": 5,
+  "Tax support": 6,
+  "Pension / Insurance": 7,
+};
 
 class SupportNeedsScreen extends StatefulWidget {
   const SupportNeedsScreen({super.key});
@@ -9,17 +22,33 @@ class SupportNeedsScreen extends StatefulWidget {
 }
 
 class _SupportNeedsScreenState extends State<SupportNeedsScreen> {
-  final List<String> supportItems = [
-    "Business registration",
-    "Loans / Funding",
-    "Record keeping",
-    "Market access",
-    "Training & coaching",
-    "Tax support",
-    "Pension / Insurance",
-  ];
-
+  final List<String> supportItems = supportNeedIds.keys.toList();
   final Set<String> selectedSupportItems = {};
+
+  void _onNext() {
+    if (selectedSupportItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select at least one support need.')),
+      );
+      return;
+    }
+
+    final supportIds =
+        selectedSupportItems.map((e) => supportNeedIds[e]!).toList();
+    // Save to provider
+    final provider = Provider.of<RegistrationProvider>(context, listen: false);
+    final registration = provider.registration;
+    if (registration == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Missing registration data!')),
+      );
+      return;
+    }
+
+    provider.setRegistration(registration.copyWith(supportNeeds: supportIds));
+
+    Navigator.pushNamed(context, '/consent');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +122,7 @@ class _SupportNeedsScreenState extends State<SupportNeedsScreen> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/consent');
-                        },
+                        onPressed: _onNext,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           shape: RoundedRectangleBorder(
