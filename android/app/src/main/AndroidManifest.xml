@@ -2,7 +2,8 @@
     <application
         android:label="ufad"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"> <!-- ✅ Added for Android 13+ -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
