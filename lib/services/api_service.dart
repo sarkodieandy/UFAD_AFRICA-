@@ -48,10 +48,7 @@ class ApiService {
   Future<Map<String, String?>> getCredentials() async {
     final identifier = await _storage.read(key: 'identifier');
     final password = await _storage.read(key: 'password');
-    return {
-      'identifier': identifier,
-      'password': password,
-    };
+    return {'identifier': identifier, 'password': password};
   }
 
   Future<void> clearCredentials() async {
@@ -80,15 +77,30 @@ class ApiService {
     }
   }
 
-  Future<http.Response> _post(String endpoint, Map<String, dynamic> data) async {
+  // POST//
+  Future<http.Response> _post(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
     try {
-      if (kDebugMode) debugPrint('[POST] $uri\nPayload: ${jsonEncode(data)}');
+      if (kDebugMode) {
+        debugPrint('[POST] $uri');
+        debugPrint('📦 Payload: ${jsonEncode(data)}');
+      }
+
       final response = await http
           .post(uri, headers: ApiConfig.defaultHeaders, body: jsonEncode(data))
           .timeout(const Duration(seconds: 15));
+
+      if (kDebugMode) {
+        debugPrint('📬 Response (${response.statusCode}): ${response.body}');
+      }
+
       return _handleResponse(response);
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('❌ POST request error: $e');
+      debugPrint('📛 Stack trace:\n$stack');
       return _handleError(e);
     }
   }
@@ -152,7 +164,9 @@ class ApiService {
   Future<Map<String, dynamic>> login(Map<String, dynamic> data) async {
     final login = Uri.encodeComponent(data['login']);
     final password = Uri.encodeComponent(data['password']);
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiEndpoints.login}?login=$login&password=$password');
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiEndpoints.login}?login=$login&password=$password',
+    );
 
     final res = await http
         .get(uri, headers: ApiConfig.defaultHeaders)
@@ -191,7 +205,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> fetchDashboard(int userId) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiEndpoints.dashboard}?user_id=$userId');
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiEndpoints.dashboard}?user_id=$userId',
+    );
     final headers = {
       'Authorization': ApiConfig.basicAuth,
       'Content-Type': 'application/json',
@@ -227,8 +243,10 @@ class ApiService {
     return body is List ? body : (body['data'] ?? []);
   }
 
-  Future<void> addSale(Map<String, dynamic> data) async => _post(ApiEndpoints.sales, data);
-  Future<void> updateSale(int id, Map<String, dynamic> data) async => _put('${ApiEndpoints.sales}/$id', data);
+  Future<void> addSale(Map<String, dynamic> data) async =>
+      _post(ApiEndpoints.sales, data);
+  Future<void> updateSale(int id, Map<String, dynamic> data) async =>
+      _put('${ApiEndpoints.sales}/$id', data);
   Future<void> deleteSale(int id) async => _delete('${ApiEndpoints.sales}/$id');
 
   Future<List<dynamic>> getTransactions() async {
@@ -243,21 +261,29 @@ class ApiService {
     return body is List ? body : (body['data'] ?? []);
   }
 
-  Future<void> addTransaction(Map<String, dynamic> data) async => _post(ApiEndpoints.transactions, data);
-  Future<void> updateTransaction(int id, Map<String, dynamic> data) async => _put('${ApiEndpoints.transactions}/$id', data);
-  Future<void> deleteTransaction(int id) async => _delete('${ApiEndpoints.transactions}/$id');
+  Future<void> addTransaction(Map<String, dynamic> data) async =>
+      _post(ApiEndpoints.transactions, data);
+  Future<void> updateTransaction(int id, Map<String, dynamic> data) async =>
+      _put('${ApiEndpoints.transactions}/$id', data);
+  Future<void> deleteTransaction(int id) async =>
+      _delete('${ApiEndpoints.transactions}/$id');
 
-  Future<void> addSupplier(Map<String, dynamic> data) async => _post(ApiEndpoints.suppliers, data);
-  Future<void> updateSupplier(int id, Map<String, dynamic> data) async => _put('${ApiEndpoints.suppliers}/$id', data);
-  Future<void> deleteSupplier(int id) async => _delete('${ApiEndpoints.suppliers}/$id');
+  Future<void> addSupplier(Map<String, dynamic> data) async =>
+      _post(ApiEndpoints.suppliers, data);
+  Future<void> updateSupplier(int id, Map<String, dynamic> data) async =>
+      _put('${ApiEndpoints.suppliers}/$id', data);
+  Future<void> deleteSupplier(int id) async =>
+      _delete('${ApiEndpoints.suppliers}/$id');
 
   Future<List<dynamic>> getProducts() async {
     final res = await _get('/products');
     return jsonDecode(res.body);
   }
 
-  Future<void> addProduct(Map<String, dynamic> data) async => _post('/products', data);
-  Future<void> updateProduct(int id, Map<String, dynamic> data) async => _put('/products/$id', data);
+  Future<void> addProduct(Map<String, dynamic> data) async =>
+      _post('/products', data);
+  Future<void> updateProduct(int id, Map<String, dynamic> data) async =>
+      _put('/products/$id', data);
   Future<void> deleteProduct(int id) async => _delete('/products/$id');
 
   Future<List<dynamic>> getCategories() async {
@@ -265,7 +291,9 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
-  Future<void> addCategory(Map<String, dynamic> data) async => _post('/categories', data);
-  Future<void> updateCategory(int id, Map<String, dynamic> data) async => _put('/categories/$id', data);
+  Future<void> addCategory(Map<String, dynamic> data) async =>
+      _post('/categories', data);
+  Future<void> updateCategory(int id, Map<String, dynamic> data) async =>
+      _put('/categories/$id', data);
   Future<void> deleteCategory(int id) async => _delete('/categories/$id');
 }

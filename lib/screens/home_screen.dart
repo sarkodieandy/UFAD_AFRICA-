@@ -33,18 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   void _onTabTapped(int index) {
-    if (kDebugMode) {
-      print('🔁 Tab tapped: $index');
-    }
+    if (kDebugMode) print('🔁 Tab tapped: $index');
     setState(() {
       _selectedIndex = index;
     });
   }
 
   void _onFabPressed() {
-    if (kDebugMode) {
-      print('➕ FAB pressed on index $_selectedIndex');
-    }
+    if (kDebugMode) print('➕ FAB pressed on index $_selectedIndex');
     switch (_selectedIndex) {
       case 1:
         Navigator.push(
@@ -65,9 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         break;
       default:
-        if (kDebugMode) {
-          print('ℹ️ No FAB action for tab index $_selectedIndex');
-        }
+        if (kDebugMode) print('ℹ️ No FAB action for tab index $_selectedIndex');
     }
   }
 
@@ -79,17 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final transactionProvider = context.read<TransactionProvider>();
       final suppliersProvider = context.read<SuppliersProvider>();
 
-      if (kDebugMode) {
-        print('📦 Fetching initial data...');
-      }
+      if (kDebugMode) print('📦 Fetching initial data...');
       await Future.wait([
         saleProvider.fetchSales(),
         transactionProvider.fetchTransactions(),
         suppliersProvider.fetchSuppliers(),
       ]);
-      if (kDebugMode) {
-        print('✅ Data fetched.');
-      }
+      if (kDebugMode) print('✅ Data fetched.');
     });
   }
 
@@ -99,25 +89,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = auth.user;
 
     if (auth.loading) {
-      if (kDebugMode) {
-        print('⏳ Auth loading...');
-      }
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      if (kDebugMode) print('⏳ Auth loading...');
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (user == null) {
-      if (kDebugMode) {
-        print('❌ User is null, redirecting to login...');
-      }
+      if (kDebugMode) print('❌ User is null, redirecting to login...');
       Future.microtask(() {
-        // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, '/login');
       });
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (kDebugMode) {
@@ -133,29 +114,27 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              if (kDebugMode) {
-                print('🚪 Logging out...');
-              }
+              if (kDebugMode) print('🚪 Logging out...');
               await auth.logout();
               if (mounted) {
-                // ignore: use_build_context_synchronously
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
-      floatingActionButton: _selectedIndex == 0
-          ? null
-          : FloatingActionButton(
-              onPressed: _onFabPressed,
-              backgroundColor: AppColors.green,
-              child: const Icon(Icons.add),
-            ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
+      floatingActionButton:
+          _selectedIndex == 0
+              ? null
+              : FloatingActionButton(
+                heroTag:
+                    'fab_$_selectedIndex', // ✅ give unique tag to avoid conflicts
+                onPressed: _onFabPressed,
+                backgroundColor: AppColors.green,
+                child: const Icon(Icons.add),
+              ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: AppColors.green,
@@ -163,9 +142,15 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onTabTapped,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.sell), label: 'Sales'),
-          BottomNavigationBarItem(icon: Icon(Icons.swap_horiz), label: 'Transactions'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.swap_horiz),
+            label: 'Transactions',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Suppliers'),
         ],
       ),

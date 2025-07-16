@@ -25,18 +25,24 @@ class SaleProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addSale(Map<String, dynamic> data) async {
-    _setLoading(true);
-    try {
-      await _api.addSale(data);
-      await fetchSales(); // Refresh list after add
-    } catch (e) {
-      error = 'Add sale failed: $e';
-      rethrow;
-    } finally {
-      _setLoading(false);
-    }
+ Future<void> addSale(Map<String, dynamic> data) async {
+  _setLoading(true);
+  try {
+    debugPrint('📤 Adding sale with payload: $data');
+    await _api.addSale(data);
+    debugPrint('✅ Sale successfully added!');
+    await fetchSales(); // Refresh list
+  } catch (e, stack) {
+    error = 'Add sale failed: $e';
+    debugPrint('❌ Add sale failed: $e');
+    debugPrint('📛 Stack trace:\n$stack');
+    rethrow;
+  } finally {
+    _setLoading(false);
   }
+}
+
+ 
 
   Future<void> updateSale(int id, Map<String, dynamic> data) async {
     _setLoading(true);

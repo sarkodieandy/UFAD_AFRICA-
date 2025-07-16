@@ -1,19 +1,25 @@
-class BusinessModel {
+class BusinessProfile {
   final int id;
   final String name;
-  final String mainProductService;
+  final String phone;
+  final String location;
+  final String? profileImage; // ✅ New field
 
-  BusinessModel({
+  BusinessProfile({
     required this.id,
     required this.name,
-    required this.mainProductService,
+    required this.phone,
+    required this.location,
+    this.profileImage,
   });
 
-  factory BusinessModel.fromJson(Map<String, dynamic> json) {
-    return BusinessModel(
+  factory BusinessProfile.fromJson(Map<String, dynamic> json) {
+    return BusinessProfile(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       name: json['business_name'] ?? '',
-      mainProductService: json['main_product_service'] ?? '',
+      phone: json['business_phone'] ?? '',
+      location: json['business_location'] ?? '',
+      profileImage: json['profile_image'], // ✅ Parse image from backend
     );
   }
 
@@ -21,7 +27,9 @@ class BusinessModel {
     return {
       'id': id,
       'business_name': name,
-      'main_product_service': mainProductService,
+      'business_phone': phone,
+      'business_location': location,
+      'profile_image': profileImage,
     };
   }
 }
