@@ -1,4 +1,3 @@
-// 📁 lib/screens/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ufad/models/dashboard_model.dart';
@@ -28,10 +27,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final auth = Provider.of<AuthProvider>(context, listen: false);
         if (auth.user != null) {
           final userId = auth.user!.id;
-          Provider.of<DashboardProvider>(
-            context,
-            listen: false,
-          ).fetchDashboard(userId);
+          print('📊 Fetching dashboard data for user ID: $userId');
+          Provider.of<DashboardProvider>(context, listen: false)
+              .fetchDashboard(userId);
         }
       });
     }
@@ -40,10 +38,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _refreshDashboard() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.user != null) {
-      await Provider.of<DashboardProvider>(
-        context,
-        listen: false,
-      ).fetchDashboard(auth.user!.id);
+      print('🔄 Refreshing dashboard...');
+      await Provider.of<DashboardProvider>(context, listen: false)
+          .fetchDashboard(auth.user!.id);
     }
   }
 
@@ -57,9 +54,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         }
 
-        if (provider.loading) return const Loader();
+        if (provider.loading) {
+          print('⏳ Dashboard loading...');
+          return const Loader();
+        }
 
         if (provider.error != null) {
+          print('❌ Dashboard error: ${provider.error}');
           return Scaffold(
             body: Center(
               child: Text(
@@ -74,10 +75,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final businessName = auth.business?.name ?? 'User';
 
         if (data == null) {
+          print('⚠️ Dashboard data is null');
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: Text('No dashboard data available')),
           );
         }
+
+        print('✅ Dashboard loaded for $businessName');
 
         return Scaffold(
           backgroundColor: AppColors.white,
@@ -115,19 +119,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 12),
-                  _buildChart(data.salesTrend),
+                  data.salesTrend.isEmpty
+                      ? const Text('No sales trend data.')
+                      : _buildChart(data.salesTrend),
                   const SizedBox(height: 24),
                   Text(
                     'Top Debtors',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  ...data.topDebtors.map(
-                    (d) => ListTile(
-                      title: Text(d.name),
-                      trailing: Text('₵${d.amount.toStringAsFixed(2)}'),
-                    ),
-                  ),
+                  data.topDebtors.isEmpty
+                      ? const Text('No top debtors yet.')
+                      : Column(
+                          children: data.topDebtors
+                              .map(
+                                (d) => ListTile(
+                                  title: Text(d.name),
+                                  trailing: Text('₵${d.amount.toStringAsFixed(2)}'),
+                                ),
+                              )
+                              .toList(),
+                        ),
                 ],
               ),
             ),
@@ -142,7 +154,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        // ignore: deprecated_member_use
         color: AppColors.green.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -190,12 +201,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               barWidth: 3,
               dotData: FlDotData(show: false),
               belowBarData: BarAreaData(show: true),
-              spots:
-                  trends
-                      .asMap()
-                      .entries
-                      .map((e) => FlSpot(e.key.toDouble(), e.value.total))
-                      .toList(),
+              spots: trends
+                  .asMap()
+                  .entries
+                  .map((e) => FlSpot(e.key.toDouble(), e.value.total))
+                  .toList(),
             ),
           ],
         ),

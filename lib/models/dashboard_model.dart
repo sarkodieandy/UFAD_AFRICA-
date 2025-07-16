@@ -1,11 +1,13 @@
+// 📁 lib/models/dashboard_model.dart
 class DashboardModel {
   final double totalSales;
   final double totalExpenses;
   final double totalProfit;
   final int creditScore;
   final String creditTier;
-  final List<SalesTrend> salesTrend;
   final List<TopDebtor> topDebtors;
+  final List<SalesTrend> salesTrend;
+  final String businessName;
 
   DashboardModel({
     required this.totalSales,
@@ -13,75 +15,71 @@ class DashboardModel {
     required this.totalProfit,
     required this.creditScore,
     required this.creditTier,
-    required this.salesTrend,
     required this.topDebtors,
+    required this.salesTrend,
+    required this.businessName,
   });
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
     final metrics = json['metrics'] ?? {};
+    final profile = json['business_profile'] ?? {};
     final trend = json['sales_trend'] ?? {};
-    final labels = List<String>.from(trend['labels'] ?? []);
-    final values = List.from(trend['values'] ?? []);
 
     return DashboardModel(
-      totalSales: _parseCurrency(metrics['total_sales']),
-      totalExpenses: _parseCurrency(metrics['total_expenses']),
-      totalProfit: _parseCurrency(metrics['total_profit']),
+      totalSales: _parseAmount(metrics['total_sales']),
+      totalExpenses: _parseAmount(metrics['total_expenses']),
+      totalProfit: _parseAmount(metrics['total_profit']),
       creditScore: _parseCreditScore(metrics['credit_score']),
       creditTier: _parseCreditTier(metrics['credit_score']),
-      salesTrend: List.generate(
-        labels.length,
-        (i) {
-          final value = i < values.length ? values[i] : 0;
-          return SalesTrend(month: labels[i], total: _toDouble(value));
-        },
-      ),
       topDebtors: _parseTopDebtors(metrics['top_debtors']),
+      salesTrend: _parseSalesTrend(trend),
+      businessName: profile['business_name'] ?? 'Unknown Business',
     );
   }
 
-  static double _toDouble(dynamic value) {
-    if (value is int) return value.toDouble();
-    if (value is double) return value;
-    if (value is String) return double.tryParse(value.replaceAll(',', '')) ?? 0.0;
-    return 0.0;
+  static double _parseAmount(String? value) {
+    if (value == null) return 0.0;
+    return double.tryParse(value.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
   }
 
-  static double _parseCurrency(String? input) {
-    if (input == null) return 0.0;
-    return _toDouble(input.replaceAll(RegExp(r'[^0-9.]'), ''));
+  static int _parseCreditScore(String? value) {
+    if (value == null || value == 'N/A') return 0;
+    final score = RegExp(r'^(\d+)').firstMatch(value);
+    return score != null ? int.parse(score.group(1)!) : 0;
   }
 
-  static int _parseCreditScore(String? scoreStr) {
-    if (scoreStr == null) return 0;
-    final match = RegExp(r'^(\d+)').firstMatch(scoreStr);
-    return int.tryParse(match?.group(1) ?? '') ?? 0;
+  static String _parseCreditTier(String? value) {
+    if (value == null || value == 'N/A') return 'Unknown';
+    final tier = RegExp(r'Tier\s+([A-Z])').firstMatch(value);
+    return tier != null ? 'Tier ${tier.group(1)}' : 'Unknown';
   }
 
-  static String _parseCreditTier(String? scoreStr) {
-    if (scoreStr == null) return '';
-    final match = RegExp(r'\(Tier ([A-Za-z ]+)\)').firstMatch(scoreStr);
-    return match?.group(1) ?? '';
-  }
+  static List<TopDebtor> _parseTopDebtors(String? value) {
+    if (value == null || value == 'N/A') return [];
 
-  static List<TopDebtor> _parseTopDebtors(String? debtorStr) {
-    if (debtorStr == null || debtorStr.toLowerCase() == 'n/a') return [];
-    final matches = RegExp(r'([^,]+?)\s+\(GHS\s+([\d,.]+)\)').allMatches(debtorStr);
-
-    return matches.map((match) {
-      return TopDebtor(
-        name: match.group(1)?.trim() ?? '',
-        amount: _parseCurrency(match.group(2)),
-      );
+    return value.split('|').map((item) {
+      final match = RegExp(r'(.+?) \(GHS ([\d.]+)\)').firstMatch(item.trim());
+      if (match != null) {
+        return TopDebtor(
+          name: match.group(1)!.trim(),
+          amount: double.tryParse(match.group(2)!) ?? 0.0,
+        );
+      } else {
+        return TopDebtor(name: item.trim(), amount: 0.0);
+      }
     }).toList();
   }
-}
 
-class SalesTrend {
-  final String month;
-  final double total;
+  static List<SalesTrend> _parseSalesTrend(Map<String, dynamic>? trend) {
+    final labels = (trend?['labels'] as List?)?.cast<String>() ?? [];
+    final values = (trend?['values'] as List?)?.map((v) => v.toDouble()).toList() ?? [];
 
-  SalesTrend({required this.month, required this.total});
+    final length = (labels.length < values.length) ? labels.length : values.length;
+
+    return List.generate(length, (i) {
+      return SalesTrend(month: labels[i], total: values[i]);
+    });
+  }
 }
 
 class TopDebtor {
@@ -89,4 +87,11 @@ class TopDebtor {
   final double amount;
 
   TopDebtor({required this.name, required this.amount});
+}
+
+class SalesTrend {
+  final String month;
+  final double total;
+
+  SalesTrend({required this.month, required this.total});
 }

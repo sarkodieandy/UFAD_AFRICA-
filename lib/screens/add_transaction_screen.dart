@@ -1,4 +1,4 @@
-// 📁 lib/screens/add_transaction_screen.dart
+// lib/screens/add_transaction_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ufad/providers/transaction_provider.dart';
@@ -22,13 +22,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     _formKey.currentState!.save();
     setState(() => _loading = true);
 
+    final payload = {
+      'amount': _formData['amount'],
+      'type': _formData['type'],
+    };
+
     try {
-      await context.read<TransactionProvider>().addTransaction(_formData);
+      await context.read<TransactionProvider>().addTransaction(payload);
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Failed to add transaction: $e')),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -45,7 +49,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ),
       body: _loading
           ? const Loader()
-          : SingleChildScrollView(
+          : Padding(
               padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
@@ -54,13 +58,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     TextFormField(
                       decoration: const InputDecoration(labelText: 'Amount'),
                       keyboardType: TextInputType.number,
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      validator: (v) => v == null || double.tryParse(v) == null ? 'Enter valid amount' : null,
                       onSaved: (v) => _formData['amount'] = double.parse(v!),
                     ),
                     TextFormField(
                       decoration: const InputDecoration(labelText: 'Type'),
                       validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                      onSaved: (v) => _formData['type'] = v,
+                      onSaved: (v) => _formData['type'] = v!,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(

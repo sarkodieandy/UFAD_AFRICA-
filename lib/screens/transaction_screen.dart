@@ -1,111 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/colors.dart';
-import '../../models/transaction_model.dart';
+import 'package:ufad/screens/edit_transaction.dart';
 import '../../providers/transaction_provider.dart';
+import '../../core/constants/colors.dart';
+import 'add_transaction_screen.dart';
+// Include this if implemented
 
-class EditTransactionScreen extends StatefulWidget {
-  final Transaction transaction;
-  const EditTransactionScreen({super.key, required this.transaction});
+class TransactionsScreen extends StatefulWidget {
+  const TransactionsScreen({super.key});
 
   @override
-  State<EditTransactionScreen> createState() => _EditTransactionScreenState();
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
-class _EditTransactionScreenState extends State<EditTransactionScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late double _amount;
-  late String _type;
-  late String _description;
-  bool _loading = false;
-
-  final List<String> _types = ['income', 'expense'];
-
+class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   void initState() {
     super.initState();
-    _amount = widget.transaction.amount;
-    _type = widget.transaction.type;
-    _description = widget.transaction.description;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TransactionProvider>(context, listen: false).fetchTransactions();
+    });
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
-    setState(() => _loading = true);
-
-    try {
-      final updated = Transaction(
-        id: widget.transaction.id,
-        amount: _amount,
-        type: _type,
-        description: _description, userId: widget.transaction.userId, paymentMethod: '', date: widget.transaction.date,
-      );
-
-      await Provider.of<TransactionProvider>(context, listen: false)
-          .updateTransaction(int.parse(widget.transaction.id), updated.toJson());
-
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  Future<void> _refreshTransactions() async {
+    await Provider.of<TransactionProvider>(context, listen: false).fetchTransactions();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Transaction'),
+        title: const Text('Transactions'),
         backgroundColor: AppColors.green,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                initialValue: _amount.toString(),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount (₵)'),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                onSaved: (v) => _amount = double.tryParse(v!) ?? 0.0,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _type,
-                items: _types
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                decoration: const InputDecoration(labelText: 'Type'),
-                onChanged: (val) => setState(() => _type = val!),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _description,
-                decoration: const InputDecoration(labelText: 'Description'),
-                onSaved: (v) => _description = v ?? '',
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _loading ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.green,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                child: _loading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Update'),
-              ),
-            ],
-          ),
-        ),
+      body: Consumer<TransactionProvider>(
+        builder: (context, provider, _) {
+          if (provider.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.error != null) {
+            return Center(child: Text('Error: ${provider.error}'));
+          }
+
+          if (provider.transactions.isEmpty) {
+            return const Center(child: Text('No transactions available.'));
+          }
+
+          return RefreshIndicator(
+            onRefresh: _refreshTransactions,
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: provider.transactions.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (context, index) {
+                final txn = provider.transactions[index];
+                final isIncome = txn.type == 'income';
+
+                return ListTile(
+                  title: Text(
+                    '${isIncome ? '+' : '-'}₵${txn.amount.toStringAsFixed(2)}',
+                    style: TextStyle(color: isIncome ? Colors.green : Colors.red),
+                  ),
+                  subtitle: Text('${txn.paymentMethod} • ${txn.description}'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditTransactionScreen(transaction: txn.toJson()),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.green,
+        foregroundColor: Colors.white,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -10,66 +10,59 @@ class SuppliersProvider with ChangeNotifier {
   String? error;
 
   Future<void> fetchSuppliers() async {
-    loading = true;
-    error = null;
-    notifyListeners();
-
+    _setLoading(true);
     try {
       final res = await _api.getSuppliers();
       suppliers = res.map<Supplier>((e) => Supplier.fromJson(e)).toList();
     } catch (e) {
-      error = e.toString();
+      error = 'Failed to fetch suppliers: $e';
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<void> addSupplier(Supplier supplier) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.addSupplier(supplier.toJson());
       await fetchSuppliers();
     } catch (e) {
-      error = e.toString();
+      error = 'Add failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<void> updateSupplier(Supplier supplier) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.updateSupplier(supplier.id, supplier.toJson());
       await fetchSuppliers();
     } catch (e) {
-      error = e.toString();
+      error = 'Update failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<void> deleteSupplier(int id) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.deleteSupplier(id);
-      await fetchSuppliers();
+      suppliers.removeWhere((s) => s.id == id);
+      notifyListeners();
     } catch (e) {
-      error = e.toString();
+      error = 'Delete failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
+  }
+
+  void _setLoading(bool val) {
+    loading = val;
+    notifyListeners();
   }
 }

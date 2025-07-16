@@ -3,7 +3,7 @@ import '../models/transaction_model.dart';
 import '../services/api_service.dart';
 
 class TransactionProvider with ChangeNotifier {
-  final ApiService _api = ApiService();
+  final _api = ApiService();
 
   List<Transaction> transactions = [];
   bool loading = false;

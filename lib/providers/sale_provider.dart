@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ufad/services/api_service.dart';
+import '../models/sale_model.dart';
+import '../services/api_service.dart';
 
 class SaleProvider extends ChangeNotifier {
   final _api = ApiService();
 
-  List<dynamic> sales = [];
+  List<Sale> sales = [];
   bool loading = false;
   String? error;
 
@@ -14,9 +15,10 @@ class SaleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      sales = await _api.getSales();
+      final res = await _api.getSales();
+      sales = res.map<Sale>((e) => Sale.fromJson(e)).toList();
     } catch (e) {
-      error = e.toString();
+      error = 'Failed to fetch sales: $e';
     } finally {
       loading = false;
       notifyListeners();
@@ -24,50 +26,46 @@ class SaleProvider extends ChangeNotifier {
   }
 
   Future<void> addSale(Map<String, dynamic> data) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.addSale(data);
-      await fetchSales();
+      await fetchSales(); // Refresh list after add
     } catch (e) {
-      error = e.toString();
+      error = 'Add sale failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<void> updateSale(int id, Map<String, dynamic> data) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.updateSale(id, data);
-      await fetchSales();
+      await fetchSales(); // Refresh list after update
     } catch (e) {
-      error = e.toString();
+      error = 'Update sale failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
   Future<void> deleteSale(int id) async {
+    _setLoading(true);
     try {
-      loading = true;
-      notifyListeners();
-
       await _api.deleteSale(id);
-      sales.removeWhere((e) => e['id'] == id);
+      sales.removeWhere((s) => s.id == id);
     } catch (e) {
-      error = e.toString();
+      error = 'Delete sale failed: $e';
       rethrow;
     } finally {
-      loading = false;
-      notifyListeners();
+      _setLoading(false);
     }
+  }
+
+  void _setLoading(bool value) {
+    loading = value;
+    notifyListeners();
   }
 }

@@ -45,23 +45,30 @@ class AuthProvider with ChangeNotifier {
       }
 
       final result = await _api.signup(data);
+      debugPrint('🧾 Signup response: $result');
 
       if (result['status'] != 201 || result['data'] == null) {
         throw ApiException.badRequest(result['message'] ?? 'Signup failed.');
       }
 
-      final userMap = result['data']['user'];
-      final token = result['data']['token'];
-      final userId = int.tryParse(userMap?['user_id']?.toString() ?? '');
+      final dataMap = result['data'];
+      final userMap = dataMap['user'] ?? {};
+      final token = userMap['token'] ?? dataMap['token'];
+      final userId = int.tryParse(
+        userMap['user_id']?.toString() ?? dataMap['user_id']?.toString() ?? '',
+      );
 
       if (token == null || userId == null) {
-        throw ApiException.badRequest("Missing token or user_id.");
+        throw ApiException.badRequest("Missing user, token or user_id.");
       }
 
       await _api.saveToken(token);
       await _api.saveUserId(userId);
+      await _api.saveCredentials(
+        data['email'] ?? data['mobile_number'] ?? '',
+        data['password'],
+      );
 
-      // Immediate login to hydrate full user data
       final loginSuccess = await login({
         'login': data['email'] ?? data['mobile_number'],
         'password': data['password'],
@@ -111,14 +118,12 @@ class AuthProvider with ChangeNotifier {
       }
 
       await _api.saveToken(token);
+      await _api.saveCredentials(data['login'], data['password']);
+      await _api.saveUserId(int.tryParse(userJson['user_id'].toString()) ?? 0);
 
-      // ✅ Parse and assign the user model
       user = UserModel.fromJson(userJson);
       business =
           businessJson != null ? BusinessProfile.fromJson(businessJson) : null;
-
-      // ✅ Save user_id to storage for other features (like Add Sale)
-      await _api.saveUserId(user!.id);
 
       isAuthenticated = true;
       error = null;
@@ -133,17 +138,55 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> logout() async {
-    await _api.clearToken();
-    user = null;
-    business = null;
-    isAuthenticated = false;
+  Future<void> tryAutoLogin() async {
+    final token = await _api.getToken();
+    final userId = await _api.getUserId();
+    final creds = await _api.getCredentials();
+
+    if (token != null &&
+        userId != null &&
+        creds['identifier'] != null &&
+        creds['password'] != null) {
+      try {
+        final result = await _api.login({
+          'login': creds['identifier'],
+          'password': creds['password'],
+        });
+
+        final userJson = result['data']?['user'];
+        final businessList = result['data']?['business_registrations'] as List?;
+        final businessJson =
+            businessList != null && businessList.isNotEmpty
+                ? businessList.first
+                : null;
+
+        user = UserModel.fromJson(userJson);
+        business =
+            businessJson != null
+                ? BusinessProfile.fromJson(businessJson)
+                : null;
+        isAuthenticated = true;
+        error = null;
+      } catch (e) {
+        debugPrint('[AuthProvider] Auto-login failed: $e');
+        isAuthenticated = false;
+        user = null;
+        business = null;
+        error = 'Auto-login failed.';
+      }
+    } else {
+      isAuthenticated = false;
+    }
+
     notifyListeners();
   }
 
-  Future<void> tryAutoLogin() async {
-    final token = await _api.getToken();
-    isAuthenticated = token != null;
+  Future<void> logout() async {
+    await _api.clearToken();
+    await _api.clearCredentials();
+    user = null;
+    business = null;
+    isAuthenticated = false;
     notifyListeners();
   }
 

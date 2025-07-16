@@ -1,4 +1,3 @@
-// 📁 lib/screens/add_supplier_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ufad/models/supplier_model.dart';
@@ -24,14 +23,18 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
     _formKey.currentState!.save();
     setState(() => _loading = true);
 
-    final newSupplier = Supplier(id: 0, name: _name, contact: _contact);
+    final newSupplier = Supplier(
+      id: 0, // placeholder; ignored in toJson
+      name: _name,
+      contact: _contact,
+    );
 
     try {
       await context.read<SuppliersProvider>().addSupplier(newSupplier);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('❌ Failed to add supplier: $e')),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -59,6 +62,7 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
                       validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                       onSaved: (v) => _name = v ?? '',
                     ),
+                    const SizedBox(height: 12),
                     TextFormField(
                       decoration: const InputDecoration(labelText: 'Contact'),
                       validator: (v) => v == null || v.isEmpty ? 'Required' : null,

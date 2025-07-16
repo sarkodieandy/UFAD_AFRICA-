@@ -1,4 +1,5 @@
 // 📁 lib/screens/home_screen.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ufad/core/constants/colors.dart';
@@ -12,7 +13,6 @@ import 'package:ufad/screens/transactions_list_screen.dart';
 import 'package:ufad/screens/supplier_list_screen.dart';
 import 'package:ufad/screens/add_sale_screen.dart';
 import 'package:ufad/screens/add_transaction_screen.dart';
-
 import 'package:ufad/screens/add_supplier_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,20 +33,41 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   void _onTabTapped(int index) {
-    setState(() => _selectedIndex = index);
+    if (kDebugMode) {
+      print('🔁 Tab tapped: $index');
+    }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void _onFabPressed() {
+    if (kDebugMode) {
+      print('➕ FAB pressed on index $_selectedIndex');
+    }
     switch (_selectedIndex) {
       case 1:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AddSaleScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddSaleScreen()),
+        );
         break;
       case 2:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AddTransactionScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+        );
         break;
       case 3:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AddSupplierScreen()));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddSupplierScreen()),
+        );
         break;
+      default:
+        if (kDebugMode) {
+          print('ℹ️ No FAB action for tab index $_selectedIndex');
+        }
     }
   }
 
@@ -58,11 +79,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final transactionProvider = context.read<TransactionProvider>();
       final suppliersProvider = context.read<SuppliersProvider>();
 
+      if (kDebugMode) {
+        print('📦 Fetching initial data...');
+      }
       await Future.wait([
         saleProvider.fetchSales(),
         transactionProvider.fetchTransactions(),
         suppliersProvider.fetchSuppliers(),
       ]);
+      if (kDebugMode) {
+        print('✅ Data fetched.');
+      }
     });
   }
 
@@ -72,18 +99,29 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = auth.user;
 
     if (auth.loading) {
+      if (kDebugMode) {
+        print('⏳ Auth loading...');
+      }
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (user == null) {
+      if (kDebugMode) {
+        print('❌ User is null, redirecting to login...');
+      }
       Future.microtask(() {
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, '/login');
       });
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
+    }
+
+    if (kDebugMode) {
+      print('✅ Logged in as: ${user.username}, Selected tab: $_selectedIndex');
     }
 
     return Scaffold(
@@ -95,8 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              if (kDebugMode) {
+                print('🚪 Logging out...');
+              }
               await auth.logout();
               if (mounted) {
+                // ignore: use_build_context_synchronously
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
