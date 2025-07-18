@@ -538,6 +538,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                   side: BorderSide(
+                    // ignore: deprecated_member_use
                     color: Colors.grey.withOpacity(0.2),
                     width: 1,
                   ),
@@ -587,6 +588,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           prefixIcon: Icon(icon, color: AppColors.green),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            // ignore: deprecated_member_use
             borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
           ),
           focusedBorder: OutlineInputBorder(
@@ -623,6 +625,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           prefixIcon: Icon(icon, color: AppColors.green),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            // ignore: deprecated_member_use
             borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
           ),
           focusedBorder: OutlineInputBorder(

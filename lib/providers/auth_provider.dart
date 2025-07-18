@@ -58,7 +58,7 @@ class AuthProvider with ChangeNotifier {
         userMap['user_id']?.toString() ?? dataMap['user_id']?.toString() ?? '',
       );
 
-      if (token == null || userId == null) {
+      if (token == null || userId == null || userId == 0) {
         throw ApiException.badRequest("Missing user, token or user_id.");
       }
 
@@ -69,6 +69,7 @@ class AuthProvider with ChangeNotifier {
         data['password'],
       );
 
+      // Immediately log in after signup
       final loginSuccess = await login({
         'login': data['email'] ?? data['mobile_number'],
         'password': data['password'],
@@ -111,15 +112,15 @@ class AuthProvider with ChangeNotifier {
               ? businessList.first
               : null;
 
-      if (token == null || userJson == null) {
-        throw ApiException.badRequest(
-          "Missing token or user in login response.",
-        );
+      final userId = int.tryParse(userJson?['user_id'].toString() ?? '');
+
+      if (token == null || userJson == null || userId == null || userId == 0) {
+        throw ApiException.badRequest("Invalid login response.");
       }
 
       await _api.saveToken(token);
+      await _api.saveUserId(userId);
       await _api.saveCredentials(data['login'], data['password']);
-      await _api.saveUserId(int.tryParse(userJson['user_id'].toString()) ?? 0);
 
       user = UserModel.fromJson(userJson);
       business =
@@ -145,6 +146,7 @@ class AuthProvider with ChangeNotifier {
 
     if (token != null &&
         userId != null &&
+        userId > 0 &&
         creds['identifier'] != null &&
         creds['password'] != null) {
       try {

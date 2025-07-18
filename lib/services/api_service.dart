@@ -1,4 +1,3 @@
-// 📁 lib/services/api_service.dart
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
@@ -34,27 +33,24 @@ class ApiService {
 
   Future<int?> getUserId() async {
     final id = await _storage.read(key: 'user_id');
-    final parsedId = int.tryParse(id ?? '');
-    if (kDebugMode) debugPrint('📥 Retrieved user ID: $parsedId');
-    return parsedId;
+    return int.tryParse(id ?? '');
   }
 
   Future<void> saveCredentials(String identifier, String password) async {
     await _storage.write(key: 'identifier', value: identifier);
     await _storage.write(key: 'password', value: password);
-    if (kDebugMode) debugPrint('💾 Saved login credentials');
   }
 
   Future<Map<String, String?>> getCredentials() async {
-    final identifier = await _storage.read(key: 'identifier');
-    final password = await _storage.read(key: 'password');
-    return {'identifier': identifier, 'password': password};
+    return {
+      'identifier': await _storage.read(key: 'identifier'),
+      'password': await _storage.read(key: 'password'),
+    };
   }
 
   Future<void> clearCredentials() async {
     await _storage.delete(key: 'identifier');
     await _storage.delete(key: 'password');
-    if (kDebugMode) debugPrint('🧹 Cleared login credentials');
   }
 
   Future<http.Response> get(String endpoint) => _get(endpoint);
@@ -67,7 +63,6 @@ class ApiService {
   Future<http.Response> _get(String endpoint) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
     try {
-      if (kDebugMode) debugPrint('[GET] $uri');
       final response = await http
           .get(uri, headers: ApiConfig.defaultHeaders)
           .timeout(const Duration(seconds: 15));
@@ -77,30 +72,17 @@ class ApiService {
     }
   }
 
-  // POST//
   Future<http.Response> _post(
     String endpoint,
     Map<String, dynamic> data,
   ) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
     try {
-      if (kDebugMode) {
-        debugPrint('[POST] $uri');
-        debugPrint('📦 Payload: ${jsonEncode(data)}');
-      }
-
       final response = await http
           .post(uri, headers: ApiConfig.defaultHeaders, body: jsonEncode(data))
           .timeout(const Duration(seconds: 15));
-
-      if (kDebugMode) {
-        debugPrint('📬 Response (${response.statusCode}): ${response.body}');
-      }
-
       return _handleResponse(response);
-    } catch (e, stack) {
-      debugPrint('❌ POST request error: $e');
-      debugPrint('📛 Stack trace:\n$stack');
+    } catch (e) {
       return _handleError(e);
     }
   }
@@ -108,7 +90,6 @@ class ApiService {
   Future<http.Response> _put(String endpoint, Map<String, dynamic> data) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
     try {
-      if (kDebugMode) debugPrint('[PUT] $uri\nPayload: ${jsonEncode(data)}');
       final response = await http
           .put(uri, headers: ApiConfig.defaultHeaders, body: jsonEncode(data))
           .timeout(const Duration(seconds: 15));
@@ -121,7 +102,6 @@ class ApiService {
   Future<http.Response> _delete(String endpoint) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
     try {
-      if (kDebugMode) debugPrint('[DELETE] $uri');
       final response = await http
           .delete(uri, headers: ApiConfig.defaultHeaders)
           .timeout(const Duration(seconds: 15));
@@ -142,7 +122,7 @@ class ApiService {
       case 401:
         throw ApiException.unauthorized(body?['message'] ?? 'Unauthorized');
       case 500:
-        throw ApiException.serverError(body?['message'] ?? 'Server error');
+        throw ApiException.serverError(body?['message'] ?? 'Server Error');
       default:
         throw ApiException.unknown('Unexpected error: ${res.statusCode}');
     }
@@ -152,13 +132,10 @@ class ApiService {
     if (e is SocketException) {
       throw ApiException.network('No internet connection');
     }
-    if (e is TimeoutException) throw ApiException.network('Request timed out');
+    if (e is TimeoutException) {
+      throw ApiException.network('Request timed out');
+    }
     throw ApiException.unknown(e.toString());
-  }
-
-  Future<Map<String, dynamic>> signup(Map<String, dynamic> data) async {
-    final res = await _post(ApiEndpoints.signup, data);
-    return jsonDecode(res.body);
   }
 
   Future<Map<String, dynamic>> login(Map<String, dynamic> data) async {
@@ -171,7 +148,6 @@ class ApiService {
     final res = await http
         .get(uri, headers: ApiConfig.defaultHeaders)
         .timeout(const Duration(seconds: 15));
-
     final body = jsonDecode(_handleResponse(res).body);
 
     final user = body['data']?['user'];
@@ -186,12 +162,6 @@ class ApiService {
     await saveUserId(int.tryParse(userId.toString()) ?? 0);
     await saveCredentials(data['login'], data['password']);
 
-    if (kDebugMode) {
-      debugPrint('👤 Login user: $user');
-      debugPrint('🔐 Token: $token');
-      debugPrint('📥 Saved user ID: $userId');
-    }
-
     return {
       'status': 200,
       'message': body['message'],
@@ -204,6 +174,11 @@ class ApiService {
     };
   }
 
+  Future<Map<String, dynamic>> signup(Map<String, dynamic> data) async {
+    final res = await _post(ApiEndpoints.signup, data);
+    return jsonDecode(res.body);
+  }
+
   Future<Map<String, dynamic>> fetchDashboard(int userId) async {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}${ApiEndpoints.dashboard}?user_id=$userId',
@@ -213,28 +188,13 @@ class ApiService {
       'Content-Type': 'application/json',
     };
 
-    try {
-      if (kDebugMode) {
-        debugPrint('📡 Fetching dashboard for user ID: $userId...');
-        debugPrint('[Dashboard] GET $uri');
-        debugPrint('[Dashboard] Headers: $headers');
-      }
+    final response = await http
+        .get(uri, headers: headers)
+        .timeout(const Duration(seconds: 15));
+    final handledResponse = _handleResponse(response);
+    final result = jsonDecode(handledResponse.body);
 
-      final response = await http
-          .get(uri, headers: headers)
-          .timeout(const Duration(seconds: 15));
-
-      final handledResponse = _handleResponse(response);
-      if (handledResponse.body.isEmpty) return {};
-
-      final result = jsonDecode(handledResponse.body);
-      if (kDebugMode) debugPrint('✅ Dashboard data: $result');
-
-      return result;
-    } catch (e) {
-      if (kDebugMode) debugPrint('❌ Dashboard error: $e');
-      rethrow;
-    }
+    return result;
   }
 
   Future<List<dynamic>> getSales() async {
@@ -255,18 +215,18 @@ class ApiService {
     return body is List ? body : (body['data'] ?? []);
   }
 
-  Future<List<dynamic>> getSuppliers() async {
-    final res = await _get(ApiEndpoints.suppliers);
-    final body = jsonDecode(res.body);
-    return body is List ? body : (body['data'] ?? []);
-  }
-
   Future<void> addTransaction(Map<String, dynamic> data) async =>
       _post(ApiEndpoints.transactions, data);
   Future<void> updateTransaction(int id, Map<String, dynamic> data) async =>
       _put('${ApiEndpoints.transactions}/$id', data);
   Future<void> deleteTransaction(int id) async =>
       _delete('${ApiEndpoints.transactions}/$id');
+
+  Future<List<dynamic>> getSuppliers() async {
+    final res = await _get(ApiEndpoints.suppliers);
+    final body = jsonDecode(res.body);
+    return body is List ? body : (body['data'] ?? []);
+  }
 
   Future<void> addSupplier(Map<String, dynamic> data) async =>
       _post(ApiEndpoints.suppliers, data);
@@ -276,24 +236,26 @@ class ApiService {
       _delete('${ApiEndpoints.suppliers}/$id');
 
   Future<List<dynamic>> getProducts() async {
-    final res = await _get('/products');
+    final res = await _get(ApiEndpoints.products);
     return jsonDecode(res.body);
   }
 
   Future<void> addProduct(Map<String, dynamic> data) async =>
-      _post('/products', data);
+      _post(ApiEndpoints.products, data);
   Future<void> updateProduct(int id, Map<String, dynamic> data) async =>
-      _put('/products/$id', data);
-  Future<void> deleteProduct(int id) async => _delete('/products/$id');
+      _put('${ApiEndpoints.products}/$id', data);
+  Future<void> deleteProduct(int id) async =>
+      _delete('${ApiEndpoints.products}/$id');
 
   Future<List<dynamic>> getCategories() async {
-    final res = await _get('/categories');
+    final res = await _get(ApiEndpoints.categories);
     return jsonDecode(res.body);
   }
 
   Future<void> addCategory(Map<String, dynamic> data) async =>
-      _post('/categories', data);
+      _post(ApiEndpoints.categories, data);
   Future<void> updateCategory(int id, Map<String, dynamic> data) async =>
-      _put('/categories/$id', data);
-  Future<void> deleteCategory(int id) async => _delete('/categories/$id');
+      _put('${ApiEndpoints.categories}/$id', data);
+  Future<void> deleteCategory(int id) async =>
+      _delete('${ApiEndpoints.categories}/$id');
 }

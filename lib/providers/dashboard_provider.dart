@@ -14,16 +14,11 @@ class DashboardProvider with ChangeNotifier {
   List<SalesTrend> get salesTrend => dashboard?.salesTrend ?? [];
 
   Map<String, dynamic> get metrics => {
-    'total_sales': dashboard?.totalSales ?? 0.0,
-    'total_expenses': dashboard?.totalExpenses ?? 0.0,
-    'total_profit': dashboard?.totalProfit ?? 0.0,
-    'unpaid_sales': dashboard?.unpaidSales ?? 0.0,
+    'total_sales': dashboard?.totalSales ?? 0,
+    'total_expenses': dashboard?.totalExpenses ?? 0,
+    'total_profit': dashboard?.totalProfit ?? 0,
     'credit_score': dashboard?.creditScore ?? 0,
     'credit_tier': dashboard?.creditTier ?? '',
-    'loan_qualification': dashboard?.loanQualification ?? '',
-    'business_name': dashboard?.businessName ?? '',
-    'business_phone': dashboard?.businessPhone ?? '',
-    'business_location': dashboard?.businessLocation ?? '',
   };
 
   Future<void> fetchDashboard(int userId) async {
@@ -34,9 +29,23 @@ class DashboardProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      if (kDebugMode) {
+        print('📡 Fetching dashboard for user ID: $userId...');
+      }
+
       final result = await _api.fetchDashboard(userId);
+
+      if (kDebugMode) {
+        print('📥 Dashboard API response: $result');
+      }
+
       final status = result['status'] as int?;
       final data = result['data'];
+
+      // ✅ Add this to check if business_profile exists
+      if (kDebugMode && data != null) {
+        debugPrint('🧩 Business profile section: ${data['business_profile']}');
+      }
 
       if (status != 200 || data == null) {
         throw ApiException.badRequest(
@@ -45,10 +54,20 @@ class DashboardProvider with ChangeNotifier {
       }
 
       dashboard = DashboardModel.fromJson(data);
+
+      if (kDebugMode) {
+        print('✅ Dashboard parsed: ${dashboard?.totalSales}');
+      }
     } on ApiException catch (e) {
       error = e.message;
+      if (kDebugMode) {
+        print('❌ API Exception: $error');
+      }
     } catch (e) {
       error = 'Failed to load dashboard';
+      if (kDebugMode) {
+        print('❌ General Exception: $e');
+      }
     } finally {
       loading = false;
       notifyListeners();
@@ -56,6 +75,9 @@ class DashboardProvider with ChangeNotifier {
   }
 
   void resetDashboard() {
+    if (kDebugMode) {
+      print('🔄 Resetting dashboard state...');
+    }
     dashboard = null;
     error = null;
     loading = false;

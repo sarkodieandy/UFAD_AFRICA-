@@ -39,15 +39,16 @@ class ProfileScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 50,
+              // ignore: deprecated_member_use
               backgroundColor: AppColors.green.withOpacity(0.1),
-              backgroundImage: user.profileImage != null &&
-                      user.profileImage!.isNotEmpty
-                  ? MemoryImage(base64Decode(user.profileImage!))
-                  : null,
-              child: user.profileImage == null ||
-                      user.profileImage!.isEmpty
-                  ? const Icon(Icons.person, size: 40)
-                  : null,
+              backgroundImage:
+                  user.profileImage != null && user.profileImage!.isNotEmpty
+                      ? MemoryImage(base64Decode(user.profileImage!))
+                      : null,
+              child:
+                  user.profileImage == null || user.profileImage!.isEmpty
+                      ? const Icon(Icons.person, size: 40)
+                      : null,
             ),
             const SizedBox(height: 16),
             _infoTile("Name", "${user.firstName} ${user.lastName}"),
